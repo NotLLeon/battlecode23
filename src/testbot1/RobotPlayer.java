@@ -1,4 +1,4 @@
-package examplefuncsplayer;
+package testbot1;
 
 import battlecode.common.*;
 
@@ -33,14 +33,14 @@ public strictfp class RobotPlayer {
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
     };
 
     /**
@@ -54,7 +54,8 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
 
         // Hello world! Standard output is very useful for debugging.
-        // Everything you say here will be directly viewable in your terminal when you run a match!
+        // Everything you say here will be directly viewable in your terminal when you run a match
+
 //        System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
 
         // You can also use indicators to save debug notes in replays.
@@ -113,12 +114,21 @@ public strictfp class RobotPlayer {
     static void runHeadquarters(RobotController rc) throws GameActionException {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+        MapLocation curLoc = rc.getLocation();
+        MapLocation newLoc = curLoc.add(dir);
+//        if (rc.canBuildAnchor(Anchor.STANDARD)) {
+//            // If we can build an anchor do it!
+//            rc.buildAnchor(Anchor.STANDARD);
+//            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+//        }
+
+        if(turnCount == 1) {
+            int mapHeight = rc.getMapHeight();
+            int mapWidth = rc.getMapWidth();
+            rc.writeSharedArray(0, mapWidth);
+            rc.writeSharedArray(1, mapHeight);
         }
+
         if (rng.nextBoolean()) {
             // Let's try to build a carrier.
             rc.setIndicatorString("Trying to build a carrier");
@@ -170,10 +180,10 @@ public strictfp class RobotPlayer {
                 if (rc.canCollectResource(wellLocation, -1)) {
                     if (rng.nextBoolean()) {
                         rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + 
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) + 
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) + 
-                            " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+                        rc.setIndicatorString("Collecting, now have, AD:" +
+                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                     }
                 }
             }
@@ -187,13 +197,13 @@ public strictfp class RobotPlayer {
                 }
             }
         }
-        
+
         // If we can see a well, move towards it
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 1 && rng.nextInt(3) == 1) {
             WellInfo well_one = wells[1];
             Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir)) 
+            if (rc.canMove(dir))
                 rc.move(dir);
         }
         // Also try to move randomly.
@@ -207,22 +217,36 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Launcher.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
+    static MapLocation target;
     static void runLauncher(RobotController rc) throws GameActionException {
         // Try to attack someone
+        MapLocation curLoc = rc.getLocation();
+        if(turnCount == 1) {
+            int mapWidth = rc.readSharedArray(0);
+            int mapHeight = rc.readSharedArray(1);
+            target = new MapLocation(mapWidth - curLoc.x, mapHeight-curLoc.y);
+        }
+
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length >= 0) {
-//            MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
+        if (enemies.length > 0) {
+            MapLocation toAttack = enemies[0].location;
+//            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
 
             if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");        
+                rc.setIndicatorString("Attacking");
                 rc.attack(toAttack);
             }
         }
 
-        // Also try to move randomly.
+        Direction bestDir = curLoc.directionTo(target);
+        if(rc.canMove(bestDir)) {
+            rc.move(bestDir);
+            return;
+        }
+
+        // Move randomly
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
