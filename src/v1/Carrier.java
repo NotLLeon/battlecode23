@@ -1,32 +1,12 @@
-package smartCollectors;
+package v1;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
-public class Carrier {
-
-    static final Random rng = new Random(6147);
+public class Carrier extends Robot{
 
     public enum CARRIER_STATE {
         COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL
     }
-
-    
-
-    static final Direction[] directions = {
-            Direction.NORTH,
-            Direction.NORTHEAST,
-            Direction.EAST,
-            Direction.SOUTHEAST,
-            Direction.SOUTH,
-            Direction.SOUTHWEST,
-            Direction.WEST,
-            Direction.NORTHWEST,
-    };
 
     static CARRIER_STATE state = CARRIER_STATE.EXPLORING;
     static MapLocation current_objective = new MapLocation(0, 0); 
@@ -38,12 +18,12 @@ public class Carrier {
                 rc.setIndicatorString("EXPLORING");
 
                 WellInfo[] wells = rc.senseNearbyWells();
-                if (wells.length > 0){//&& rng.nextInt(3) == 1) {
+                if (wells.length > 0 && Random.nextInt(3) == 1) {
                     WellInfo well_one = wells[0];
                     current_objective = well_one.getMapLocation();
                     state = CARRIER_STATE.MOVE_TO_WELL;
                 } else {
-                    Direction dir = directions[rng.nextInt(8)];
+                    Direction dir = Explore.exploreAwayFromHQ(rc);
                     if (rc.canMove(dir)) {
                         rc.move(dir);
                     }
@@ -55,10 +35,7 @@ public class Carrier {
                 if (current_location.isAdjacentTo(current_objective)) {
                     state = CARRIER_STATE.COLLECTING;
                 } else {
-                    Direction dir = Pathfind.getDir(rc, current_objective);
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
+                    moveTo(rc, current_objective);
                 }
             break;
             case RETURNING:
@@ -76,10 +53,7 @@ public class Carrier {
                     }
                     state = CARRIER_STATE.EXPLORING;
                 } else {
-                   Direction dir = Pathfind.getDir(rc, current_objective);
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
+                    moveTo(rc, current_objective);
                 }
             break;
             case COLLECTING:
