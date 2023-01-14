@@ -11,6 +11,24 @@ public class Carrier extends Robot{
     static CARRIER_STATE state = CARRIER_STATE.EXPLORING;
     static MapLocation current_objective = new MapLocation(0, 0); 
 
+    static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
+        MapLocation current_location = rc.getLocation();
+        int t = 0;
+        int min_loc = 0;
+        int min_dist = 10000;
+        for (int i = 0; i < 8 && (t = rc.readSharedArray(i)) != 0; i++) {
+            int x = (t-1)%rc.getMapWidth();
+            int y = (t-1)/rc.getMapWidth();
+            int cur_dist = (x-current_location.x) * (x-current_location.x) + (y-current_location.y)*(y-current_location.y);
+            if (cur_dist < min_dist) {
+                min_dist = cur_dist;
+                min_loc = (t-1);
+            }
+        }
+        return new MapLocation(min_loc%rc.getMapWidth(), min_loc/rc.getMapWidth());
+    }
+
+
     static void runCarrier(RobotController rc, int turnCount) throws GameActionException {
         MapLocation current_location = rc.getLocation();
         switch (state) {
@@ -23,7 +41,7 @@ public class Carrier extends Robot{
                     current_objective = well_one.getMapLocation();
                     state = CARRIER_STATE.MOVE_TO_WELL;
                 } else {
-                    Direction dir = Explore.exploreAwayFromHQ(rc);
+                    Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
                     if (rc.canMove(dir)) {
                         rc.move(dir);
                     }
@@ -68,22 +86,7 @@ public class Carrier extends Robot{
                                     " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                         // }
                 } else {
-                   // int raw = rc.readSharedArray(0)-1;
-                   // current_objective = new MapLocation(raw%rc.getMapWidth(), raw/rc.getMapWidth());
-                    int t = 0;
-                    int min_loc = 0;
-                    int min_dist = 10000;
-                    for (int i = 0; i < 8 && (t = rc.readSharedArray(i)) != 0; i++) {
-                        int x = (t-1)%rc.getMapWidth();
-                        int y = (t-1)/rc.getMapWidth();
-                       // System.out.println("(" + x + ", " + y + ")");
-                        int cur_dist = (x-current_location.x) * (x-current_location.x) + (y-current_location.y)*(y-current_location.y);
-                        if (cur_dist < min_dist) {
-                            min_dist = cur_dist;
-                            min_loc = (t-1);
-                        }
-                    }
-                    current_objective = new MapLocation(min_loc%rc.getMapWidth(), min_loc/rc.getMapWidth());
+                    current_objective = getClosestHQ(rc);
                     state = CARRIER_STATE.RETURNING;
                 }
             break;
