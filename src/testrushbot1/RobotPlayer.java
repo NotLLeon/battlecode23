@@ -32,7 +32,6 @@ public strictfp class RobotPlayer {
 //        System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
 
         // You can also use indicators to save debug notes in replays.
-        rc.setIndicatorString("Hello world!");
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite

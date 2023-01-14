@@ -4,7 +4,7 @@ import battlecode.common.Direction;
 
 public class Random {
     
-    static final java.util.Random rng = new java.util.Random(6147);
+    static java.util.Random rng = new java.util.Random(6147);
 
     static final Direction[] directions = {
             Direction.NORTH,
