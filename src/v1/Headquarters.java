@@ -1,10 +1,10 @@
-package smartCollectors;
+package v1;
 
 import battlecode.common.*;
 
 import java.util.Random;
 
-public class Headquarters {
+public class Headquarters extends Robot {
 
     static final Random rng = new Random(6147);
 
@@ -56,13 +56,12 @@ public class Headquarters {
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
-        // } else {
-        //     // Let's try to build a launcher.
-        //     rc.setIndicatorString("Trying to build a launcher");
-        //     if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-        //         rc.buildRobot(RobotType.LAUNCHER, newLoc);
-        //     }
-        // }
+        } else {
+            // Let's try to build a launcher.
+            rc.setIndicatorString("Trying to build a launcher");
+            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            }
+        }
     }
-}
 }
