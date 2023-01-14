@@ -3,4 +3,4 @@ Similar to examplefuncsplayer except:
 - launchers pathfind to their spawn position rotated 180 degrees
     - if the optimal direction is not movable when pathfinding, move randomly
 - launchers attack properly
-- carriers explore until well found
+- carriers explore away from hq

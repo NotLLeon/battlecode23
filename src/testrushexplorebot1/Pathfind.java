@@ -11,7 +11,7 @@ public class Pathfind {
 
         // If optimal direction is not movable, move randomly
         Direction dir = Random.nextDir();
-        while(!rc.canMove(dir)) dir = Random.nextDir();
+        for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) if (!rc.canMove(dir)) dir = Random.nextDir();
         return dir;
     }
 }

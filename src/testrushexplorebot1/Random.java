@@ -1,12 +1,10 @@
 package testrushexplorebot1;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import battlecode.common.Direction;
 
 public class Random {
     
-    static final java.util.Random rng = new java.util.Random(6147);
+    static java.util.Random rng = new java.util.Random(6147);
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -20,7 +18,12 @@ public class Random {
     };
 
     static int getDirectionOrderNum(Direction dir) {
-        return ArrayUtils.indexOf(directions, dir);
+        for (int i = 0; i < 8; ++i) {
+            if (directions[i] == dir) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     static Direction nextDir() {
@@ -29,7 +32,7 @@ public class Random {
 
     static Direction nextDirWeighted(int weights[], int totalWeight) {
         int idx = 0;
-        for (int i = totalWeight * nextInt(6147); idx < directions.length; ++idx) {
+        for (int i = totalWeight * nextInt(10); idx < directions.length - 1; ++idx) {
             i -= weights[idx];
             if (i <= 0) break;
         }

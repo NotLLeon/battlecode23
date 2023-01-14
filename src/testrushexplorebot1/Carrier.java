@@ -66,10 +66,16 @@ public class Carrier {
             if (rc.canMove(dir))
                 rc.move(dir);
         }
-        // Also try to move randomly.
-        Direction dir = Random.nextDir();
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+        // otherwise move away to hq if resources
+        else if (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 0 || rc.getResourceAmount(ResourceType.MANA) > 0) {
+            MapLocation hqLoc = new MapLocation(rc.readSharedArray(0) / rc.getMapWidth(), rc.readSharedArray(0) % rc.getMapWidth());
+            Direction dir = Pathfind.getDir(rc, hqLoc);
+            if (rc.canMove(dir)) rc.move(dir);
+        } 
+        // otherwise explore
+        else {
+            Direction dir = Explore.exploreAwayFromHQ(rc);
+            if (rc.canMove(dir)) rc.move(dir);
         }
     }
 

@@ -12,8 +12,10 @@ public class Headquarters {
 
         // Save own location in shared array
         // TODO: Dont save all HQ in 0, use 0-7
-        rc.writeSharedArray(0, rc.getLocation().x * rc.getMapWidth() + rc.getLocation().y);
-        
+        if (turnCount == 1) {
+            rc.writeSharedArray(0, curLoc.x + rc.getMapWidth() * curLoc.y);
+        }
+
 //        if (rc.canBuildAnchor(Anchor.STANDARD)) {
 //            // If we can build an anchor do it!
 //            rc.buildAnchor(Anchor.STANDARD);
