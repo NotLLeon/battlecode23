@@ -1,22 +1,23 @@
-package testrushbot1;
+package testrushexplorebot1;
 
 import battlecode.common.*;
 
-public class Launcher extends Robot{
+public class Launcher {
 
     static MapLocation target;
 
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
+
         // Get target location
         if(turnCount == 1) {
             MapLocation curLoc = rc.getLocation();
 
             // FIXME: assumes 180 deg rotation
-            target = new MapLocation(rc.getMapWidth()-curLoc.x-1, rc.getMapHeight()-curLoc.y-1);
+            target = new MapLocation(rc.getMapWidth() - curLoc.x, rc.getMapHeight()-curLoc.y);
         }
-        rc.setIndicatorString("Target:" + target);
+
         // Move if possible
-        moveTo(rc, target);
+        if(rc.isMovementReady()) rc.move(Pathfind.getDir(rc, target));
 
         // Attack if possible
         int radius = rc.getType().actionRadiusSquared;

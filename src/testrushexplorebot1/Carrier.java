@@ -1,4 +1,4 @@
-package testrushbot1;
+package testrushexplorebot1;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Carrier extends Robot{
+public class Carrier {
 
     static void runCarrier(RobotController rc, int turnCount) throws GameActionException {
         if (rc.getAnchor() != null) {
@@ -66,10 +66,16 @@ public class Carrier extends Robot{
             if (rc.canMove(dir))
                 rc.move(dir);
         }
-        // Also try to move randomly.
-        Direction dir = Random.nextDir();
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+        // otherwise move away to hq if resources
+        else if (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 0 || rc.getResourceAmount(ResourceType.MANA) > 0) {
+            MapLocation hqLoc = new MapLocation(rc.readSharedArray(0) / rc.getMapWidth(), rc.readSharedArray(0) % rc.getMapWidth());
+            Direction dir = Pathfind.getDir(rc, hqLoc);
+            if (rc.canMove(dir)) rc.move(dir);
+        } 
+        // otherwise explore
+        else {
+            Direction dir = Explore.exploreAwayFromHQ(rc);
+            if (rc.canMove(dir)) rc.move(dir);
         }
     }
 

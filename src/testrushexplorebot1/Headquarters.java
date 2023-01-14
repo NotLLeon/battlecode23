@@ -1,14 +1,21 @@
-package testrushbot1;
+package testrushexplorebot1;
 
 import battlecode.common.*;
 
-public class Headquarters extends Robot {
+public class Headquarters {
 
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
         Direction dir = Random.nextDir();
         MapLocation curLoc = rc.getLocation();
         MapLocation newLoc = curLoc.add(dir);
+
+        // Save own location in shared array
+        // TODO: Dont save all HQ in 0, use 0-7
+        if (turnCount == 1) {
+            rc.writeSharedArray(0, curLoc.x + rc.getMapWidth() * curLoc.y);
+        }
+
 //        if (rc.canBuildAnchor(Anchor.STANDARD)) {
 //            // If we can build an anchor do it!
 //            rc.buildAnchor(Anchor.STANDARD);
