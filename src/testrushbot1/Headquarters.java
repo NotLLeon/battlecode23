@@ -2,7 +2,7 @@ package testrushbot1;
 
 import battlecode.common.*;
 
-public class Headquarters {
+public class Headquarters extends Robot {
 
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
@@ -14,13 +14,6 @@ public class Headquarters {
 //            rc.buildAnchor(Anchor.STANDARD);
 //            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
 //        }
-
-        if(turnCount == 1) {
-            int mapHeight = rc.getMapHeight();
-            int mapWidth = rc.getMapWidth();
-            rc.writeSharedArray(0, mapWidth);
-            rc.writeSharedArray(1, mapHeight);
-        }
 
         if (Random.nextBoolean()) {
             // Let's try to build a carrier.

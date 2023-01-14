@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Carrier {
+public class Carrier extends Robot{
 
     static void runCarrier(RobotController rc, int turnCount) throws GameActionException {
         if (rc.getAnchor() != null) {
