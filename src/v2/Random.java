@@ -32,7 +32,7 @@ public class Random {
 
     static Direction nextDirWeighted(int weights[], int totalWeight) {
         int idx = 0;
-        for (int i = totalWeight * nextInt(10); idx < directions.length - 1; ++idx) {
+        for (int i = nextInt(totalWeight); idx < directions.length - 1; ++idx) {
             i -= weights[idx];
             if (i <= 0) break;
         }
