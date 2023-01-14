@@ -11,19 +11,19 @@ public class Pathing {
         if (rc.getLocation().equals(target)) {
             return;
         }
-        if (!rc.isActionReady()) {
-            return;
-        }
-        Direction d = rc.getLocation().directionTo(target);
-        if (rc.canMove(d)) {
-            rc.move(d);
+//        if (!rc.isActionReady()) {
+//            return;
+//        }
+        Direction bestDir = rc.getLocation().directionTo(target);
+        if (rc.canMove(bestDir)) {
+            rc.move(bestDir);
             currentDirection = null; // there is no obstacle we're going around
         } else {
             // Going around some obstacle: can't move towards d because there's an obstacle there
             // Idea: keep the obstacle on our right hand
 
             if (currentDirection == null) {
-                currentDirection = d;
+                currentDirection = bestDir;
             }
             // Try to move in a way that keeps the obstacle on our right
             for (int i = 0; i < 8; i++) {
