@@ -5,6 +5,7 @@ import battlecode.common.*;
 public class Launcher {
 
     static MapLocation target;
+
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
 
         // Get target location
