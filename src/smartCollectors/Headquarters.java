@@ -19,8 +19,6 @@ public class Headquarters {
             Direction.NORTHWEST,
     };
 
-    static int index = 0;
-
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
@@ -33,26 +31,16 @@ public class Headquarters {
 //        }
 
         if(turnCount == 1) {
-          //  int mapHeight = rc.getMapHeight();
-           int mapWidth = rc.getMapWidth();
+            int mapHeight = rc.getMapHeight();
+            int mapWidth = rc.getMapWidth();
            // rc.writeSharedArray(0, mapWidth);
            // rc.writeSharedArray(1, mapHeight);
-         //  int index = 0;
-           for (int i = 0; i < 8; i++) {
-                if (rc.readSharedArray(i) == 0) {
-                    index = i;
-                    break;
-                }
-           }
-           rc.writeSharedArray(index, curLoc.x + mapWidth * curLoc.y + 1);
+           rc.writeSharedArray(0, curLoc.x + mapWidth * curLoc.y);
         }
-
-        int raw = rc.readSharedArray(index)-1;
-        rc.setIndicatorString("Index: " + index + " Location: (" + (raw%rc.getMapWidth()) + "," + (raw/rc.getMapWidth()));
 
         if (rng.nextBoolean()) {
             // Let's try to build a carrier.
-           // rc.setIndicatorString("Trying to build a carrier");
+            rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
