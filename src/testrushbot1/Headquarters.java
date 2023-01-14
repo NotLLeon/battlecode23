@@ -2,26 +2,11 @@ package testrushbot1;
 
 import battlecode.common.*;
 
-import java.util.Random;
-
 public class Headquarters {
-
-    static final Random rng = new Random(6147);
-
-    static final Direction[] directions = {
-            Direction.NORTH,
-            Direction.NORTHEAST,
-            Direction.EAST,
-            Direction.SOUTHEAST,
-            Direction.SOUTH,
-            Direction.SOUTHWEST,
-            Direction.WEST,
-            Direction.NORTHWEST,
-    };
 
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
-        Direction dir = directions[rng.nextInt(directions.length)];
+        Direction dir = Random.nextDir();
         MapLocation curLoc = rc.getLocation();
         MapLocation newLoc = curLoc.add(dir);
 //        if (rc.canBuildAnchor(Anchor.STANDARD)) {
@@ -37,7 +22,7 @@ public class Headquarters {
             rc.writeSharedArray(1, mapHeight);
         }
 
-        if (rng.nextBoolean()) {
+        if (Random.nextBoolean()) {
             // Let's try to build a carrier.
             rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
