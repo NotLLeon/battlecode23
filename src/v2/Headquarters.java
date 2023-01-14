@@ -33,18 +33,7 @@ public class Headquarters extends Robot {
 //        }
 
         if(turnCount == 1) {
-          //  int mapHeight = rc.getMapHeight();
-           int mapWidth = rc.getMapWidth();
-           // rc.writeSharedArray(0, mapWidth);
-           // rc.writeSharedArray(1, mapHeight);
-         //  int index = 0;
-           for (int i = 0; i < 8; i++) {
-                if (rc.readSharedArray(i) == 0) {
-                    index = i;
-                    break;
-                }
-           }
-           rc.writeSharedArray(index, curLoc.x + mapWidth * curLoc.y + 1);
+           Comms.writeHQ(rc, rc.getLocation());
         }
 
         int raw = rc.readSharedArray(index)-1;
