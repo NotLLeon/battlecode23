@@ -3,6 +3,7 @@ package testrushbot1;
 import battlecode.common.Direction;
 
 public class Random {
+    
     static final java.util.Random rng = new java.util.Random(6147);
 
     static final Direction[] directions = {
@@ -19,6 +20,7 @@ public class Random {
     static Direction nextDir() {
         return directions[rng.nextInt(directions.length)];
     }
+
     static int nextInt(int bound) {
         return rng.nextInt(bound);
     }
