@@ -11,9 +11,9 @@ public abstract class Robot {
         if (rc.getLocation().equals(dest)) {
             return;
         }
-        if (!rc.isActionReady()) {
-            return;
-        }
+//        if (!rc.isActionReady()) {
+//            return;
+//        }
         Direction d = rc.getLocation().directionTo(dest);
         if (rc.canMove(d)) {
             rc.move(d);
