@@ -2,11 +2,17 @@ package v2;
 
 import battlecode.common.*;
 
+import java.util.HashSet;
+
 public class Carrier extends Robot{
 
     public enum CARRIER_STATE {
         COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL
     }
+
+    static HashSet<Integer> ad_well_locs = new HashSet<Integer>();
+    static HashSet<Integer> mana_well_locs = new HashSet<Integer>();
+    static HashSet<Integer> elixir_well_locs = new HashSet<Integer>();
 
     static CARRIER_STATE state = CARRIER_STATE.EXPLORING;
     static MapLocation current_objective = new MapLocation(0, 0); 
@@ -36,6 +42,23 @@ public class Carrier extends Robot{
                 rc.setIndicatorString("EXPLORING");
 
                 WellInfo[] wells = rc.senseNearbyWells();
+
+                for (int i = 0; i < wells.length; i++) {
+                    if (wells[i].getResourceType() == ResourceType.ADAMANTIUM) {
+                        MapLocation loc = wells[i].getMapLocation();
+                        int encode = loc.x + loc.y * rc.getMapWidth()+1;
+                        ad_well_locs.add(encode);
+                    } else if (wells[i].getResourceType() == ResourceType.MANA) {
+                        MapLocation loc = wells[i].getMapLocation();
+                        int encode = loc.x + loc.y * rc.getMapWidth()+1;
+                        mana_well_locs.add(encode);
+                    } else if (wells[i].getResourceType() == ResourceType.ELIXIR) {
+                        MapLocation loc = wells[i].getMapLocation();
+                        int encode = loc.x + loc.y * rc.getMapWidth()+1;
+                        mana_well_locs.add(encode);
+                    }
+                }
+
                 if (wells.length > 0 && Random.nextInt(3) == 1) {
                     WellInfo well_one = wells[0];
                     current_objective = well_one.getMapLocation();
@@ -69,6 +92,37 @@ public class Carrier extends Robot{
                     if (rc.canTransferResource(current_objective, ResourceType.ELIXIR, 1)) {
                         rc.transferResource(current_objective, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
                     }
+
+                    for (int i : ad_well_locs) {
+                        for (int j = 8; j < 18; j++) {
+                            int val = rc.readSharedArray(j);
+                           // System.out.println("index: " + j + " value: " + val);
+                            if (val == i) {
+                                break;
+                            } else if (val == 0) {
+                               // System.out.println("Previous value is: " + val + ". Storing ad well location at " + (i%rc.getMapWidth()) + "," + (i/rc.getMapWidth()));
+                                rc.writeSharedArray(j, i);
+                                break;
+                            }
+                        }
+                    }
+                    for (int i : mana_well_locs) {
+                        for (int j = 18; j < 28; j++) {
+                            int val = rc.readSharedArray(j);
+                           // System.out.println("index: " + j + " value: " + val);
+                            if (val == i) {
+                                break;
+                            } else if (val == 0) {
+                               // System.out.println("Previous value is: " + val + ". Storing mana well location at " + (i%rc.getMapWidth()) + "," + (i/rc.getMapWidth()));
+                                rc.writeSharedArray(j, i);
+                                break;
+                            }
+                        }
+                    }
+
+                    ad_well_locs.clear();
+                    mana_well_locs.clear();
+
                     state = CARRIER_STATE.EXPLORING;
                 } else {
                     moveTo(rc, current_objective);
