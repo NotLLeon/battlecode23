@@ -97,7 +97,6 @@ public class Carrier extends Robot{
                         if (rc.canTakeAnchor(current_objective, Anchor.STANDARD)) {
                             rc.takeAnchor(current_objective, Anchor.STANDARD);
                             state = CARRIER_STATE.ANCHOR;
-                            System.out.println("Can take anchor");
                         } else {
                             state = CARRIER_STATE.EXPLORING;
                         }
