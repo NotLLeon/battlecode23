@@ -1,4 +1,4 @@
-package v3Capped;
+package v4;
 
 public class Constants {
     // weights for explore
