@@ -45,11 +45,17 @@ public class Carrier extends Robot{
 
                 for (int i = 0; i < wells.length; i++) {
                     if (wells[i].getResourceType() == ResourceType.ADAMANTIUM) {
-                        ad_well_locs.add(Comms.encodeWellLoc(rc, wells[i].getMapLocation()));
+                        MapLocation loc = wells[i].getMapLocation();
+                        int encode = loc.x + loc.y * rc.getMapWidth()+1;
+                        ad_well_locs.add(encode);
                     } else if (wells[i].getResourceType() == ResourceType.MANA) {
-                        mana_well_locs.add(Comms.encodeWellLoc(rc, wells[i].getMapLocation()));
+                        MapLocation loc = wells[i].getMapLocation();
+                        int encode = loc.x + loc.y * rc.getMapWidth()+1;
+                        mana_well_locs.add(encode);
                     } else if (wells[i].getResourceType() == ResourceType.ELIXIR) {
-                        mana_well_locs.add(Comms.encodeWellLoc(rc, wells[i].getMapLocation()));
+                        MapLocation loc = wells[i].getMapLocation();
+                        int encode = loc.x + loc.y * rc.getMapWidth()+1;
+                        mana_well_locs.add(encode);
                     }
                 }
 
@@ -87,8 +93,36 @@ public class Carrier extends Robot{
                         rc.transferResource(current_objective, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
                     }
 
-                    Comms.writeWellLocs(rc, ad_well_locs);
-                    Comms.writeWellLocs(rc, mana_well_locs);
+                    for (int i : ad_well_locs) {
+                        for (int j = 8; j < 18; j++) {
+                            int val = rc.readSharedArray(j);
+                           // System.out.println("index: " + j + " value: " + val);
+                            if (val == i) {
+                                break;
+                            } else if (val == 0) {
+                               // System.out.println("Previous value is: " + val + ". Storing ad well location at " + (i%rc.getMapWidth()) + "," + (i/rc.getMapWidth()));
+                                rc.writeSharedArray(j, i);
+                                break;
+                            }
+                        }
+                    }
+                    for (int i : mana_well_locs) {
+                        for (int j = 18; j < 28; j++) {
+                            int val = rc.readSharedArray(j);
+                           // System.out.println("index: " + j + " value: " + val);
+                            if (val == i) {
+                                break;
+                            } else if (val == 0) {
+                               // System.out.println("Previous value is: " + val + ". Storing mana well location at " + (i%rc.getMapWidth()) + "," + (i/rc.getMapWidth()));
+                                rc.writeSharedArray(j, i);
+                                break;
+                            }
+                        }
+                    }
+
+                    ad_well_locs.clear();
+                    mana_well_locs.clear();
+
                     state = CARRIER_STATE.EXPLORING;
                 } else {
                     moveTo(rc, current_objective);
@@ -112,6 +146,77 @@ public class Carrier extends Robot{
             break;
             default:
             break;
+            // if (rc.getAnchor() != null) {
+            //     // If I have an anchor singularly focus on getting it to the first island I see
+            //     int[] islands = rc.senseNearbyIslands();
+            //     Set<MapLocation> islandLocs = new HashSet<>();
+            //     for (int id : islands) {
+            //         MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+            //         islandLocs.addAll(Arrays.asList(thisIslandLocs));
+            //     }
+            //     if (islandLocs.size() > 0) {
+            //         MapLocation islandLocation = islandLocs.iterator().next();
+            //         rc.setIndicatorString("Moving my anchor towards " + islandLocation);
+            //         while (!rc.getLocation().equals(islandLocation)) {
+            //             Direction dir = rc.getLocation().directionTo(islandLocation);
+            //             if (rc.canMove(dir)) {
+            //                 rc.move(dir);
+            //             }
+            //         }
+            //         if (rc.canPlaceAnchor()) {
+            //             rc.setIndicatorString("Huzzah, placed anchor!");
+            //             rc.placeAnchor();
+            //         }
+            //     }
+            // }
+            // boolean coll = false;
+            // RobotInfo[] enemyRobots = rc.senseNearbyRobots(9, rc.getTeam().opponent());
+            // if (enemyRobots.length > 0) {
+            //     if (rc.canAttack(enemyRobots[0].location)) {
+            //         rc.attack(enemyRobots[0].location);
+            //     }
+            //     if (turnCount < 500) {
+            //         System.out.println("ATTACKING: " + enemyRobots[0].location);
+            //     }
+            // }
+
+            // // Try to gather from squares around us.
+            // for (int dx = -1; dx <= 1; dx++) {
+            //     for (int dy = -1; dy <= 1; dy++) {
+            //         MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
+            //         if (rc.canCollectResource(wellLocation, -2)) {
+            //             // if (rng.nextBoolean()) {
+            //                 rc.collectResource(wellLocation, -2);
+            //                 coll = true;
+            //                 rc.setIndicatorString("Collecting, now have, AD:" +
+            //                         rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+            //                         " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+            //                         " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+            //             // }
+            //         }
+            //     }
+            // }
+
+            // // If we can see a well, move towards it
+            // if (!coll){
+            // WellInfo[] wells = rc.senseNearbyWells();
+            // if (wells.length > 1 && rng.nextInt(3) == 1) {
+            //     WellInfo well_one = wells[1];
+            //     Direction dir = me.directionTo(well_one.getMapLocation());
+            //     if (rc.canMove(dir))
+            //         rc.move(dir);
+            // }
+            // // Also try to move randomly.
+            // Direction dir = directions[rng.nextInt(directions.length)];
+            // if (rc.canMove(dir) && !coll) {
+            //     rc.move(dir);
+            // }
+            // MapLocation testDepo = new MapLocation(me.x + 1, me.y + 1);
+            // // if (rc.canTransferResource(testDepo, ResourceType.ADAMANTIUM, 1)) {
+                
+            // // }
+            // }
         }
     }
+
 }
