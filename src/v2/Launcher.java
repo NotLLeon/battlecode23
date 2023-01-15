@@ -19,7 +19,6 @@ public class Launcher extends Robot{
             int closestDis = 999999;
 
             for(MapLocation hq : Hqs) {
-                System.out.println(hq);
                 MapLocation enemyHq = new MapLocation(
                         mapW-hq.x-1,
                         mapH-hq.y-1
