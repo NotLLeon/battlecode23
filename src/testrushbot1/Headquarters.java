@@ -15,6 +15,24 @@ public class Headquarters extends Robot {
 //            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
 //        }
 
+        for (int i = 8; i < 18; i++) {
+            int raw = rc.readSharedArray(i)-1;
+            if (raw != -1) {
+                System.out.println("Adamantium well at (" + (raw%rc.getMapWidth()) + ", " + (raw/rc.getMapWidth()) + ")");
+            } else {
+                System.out.println("Unfound ad well");
+            }
+        }
+
+        for (int i = 18; i < 28; i++) {
+            int raw = rc.readSharedArray(i)-1;
+            if (raw != -1) {
+                System.out.println("Mana well at (" + (raw%rc.getMapWidth()) + ", " + (raw/rc.getMapWidth()) + ")");
+            } else {
+                System.out.println("Unfound mana well");
+            }
+        }
+
         if (Random.nextBoolean()) {
             // Let's try to build a carrier.
             rc.setIndicatorString("Trying to build a carrier");
