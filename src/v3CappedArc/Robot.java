@@ -1,9 +1,6 @@
-package v3_1;
+package v3CappedArc;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public abstract class Robot {
 
@@ -39,21 +36,5 @@ public abstract class Robot {
                 }
             }
         }
-    }
-    static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
-        MapLocation current_location = rc.getLocation();
-        int t = 0;
-        int min_loc = 0;
-        int min_dist = 10000;
-        for (int i = 0; i < 8 && (t = rc.readSharedArray(i)) != 0; i++) {
-            int x = (t-1)%rc.getMapWidth();
-            int y = (t-1)/rc.getMapWidth();
-            int cur_dist = (x-current_location.x) * (x-current_location.x) + (y-current_location.y)*(y-current_location.y);
-            if (cur_dist < min_dist) {
-                min_dist = cur_dist;
-                min_loc = (t-1);
-            }
-        }
-        return new MapLocation(min_loc%rc.getMapWidth(), min_loc/rc.getMapWidth());
     }
 }

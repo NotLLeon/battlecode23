@@ -1,8 +1,6 @@
-package v3_1;
+package v3CappedArc;
 
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -55,7 +53,7 @@ public strictfp class RobotPlayer {
                     case LAUNCHER:      Launcher.runLauncher(rc, turnCount); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:     Amplifier.runAmplifier(rc, turnCount);break;
+                    case AMPLIFIER:     break;
                 }
 
             } catch (GameActionException e) {

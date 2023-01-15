@@ -1,4 +1,4 @@
-package v3_1;
+package v3CappedArc;
 
 import battlecode.common.*;
 
@@ -46,9 +46,6 @@ public class Launcher extends Robot{
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.HEADQUARTERS) continue;
             int enemyHealth = enemy.getHealth();
-            if (enemy.type == RobotType.LAUNCHER) {
-                enemyHealth -= 200;
-            }
             int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
             if (enemyHealth < lowestHealth) {
                 target = enemy;

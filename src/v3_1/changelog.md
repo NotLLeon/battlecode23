@@ -1,3 +1,3 @@
-* Added island searching logic that borrows our exploration code
-* modified hq spawn caps to stop spawning
-* places anchors on a island
+* Better spawning heuristic
+* Anchor code using amplifiers
+* bug fixes in v3Capp and harbinger
