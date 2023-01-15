@@ -14,8 +14,8 @@ public class Comms {
 
     private static MapLocation decodeHQLoc(RobotController rc, int encodedLoc) {
         encodedLoc -= 1;
-        int x = encodedLoc / rc.getMapWidth();
-        int y = encodedLoc % rc.getMapWidth();
+        int x = encodedLoc % rc.getMapWidth();
+        int y = encodedLoc / rc.getMapWidth();
         return new MapLocation(x, y);
     }
 
