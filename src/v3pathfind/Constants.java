@@ -1,4 +1,4 @@
-package v4;
+package v3pathfind;
 
 public class Constants {
     // weights for explore
