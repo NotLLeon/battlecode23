@@ -11,4 +11,5 @@ public class Constants {
 
     // indices for comms
     static int IDX_NUM_HQS = 63;
+    static int NUM_WELLS_STORED;
 }
