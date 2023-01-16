@@ -22,16 +22,22 @@ public abstract class Robot {
 //        Direction bugNavDir = BugNav.getDir(rc, dest);
         if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
             BugNav.reset();
-
+            Direction [] dirs = {
+                    dir.rotateLeft(),
+                    dir.rotateRight(),
+                    dir.rotateRight().rotateRight(),
+                    dir.rotateLeft().rotateLeft(),
+                    dir.rotateLeft().opposite(),
+                    dir.rotateRight().opposite(),
+                    dir.opposite()
+            };
             // TODO: weight differently
-            Direction randomDir = Random.nextDir();
             rc.setIndicatorString("bump");
-            for(int i = 0; i < 8; ++i) {
-                if(rc.canMove(randomDir)) {
-                    rc.move(randomDir);
+            for(int i = 0; i < 7; ++i) {
+                if(rc.canMove(dirs[i])) {
+                    rc.move(dirs[i]);
                     return;
                 }
-                randomDir = randomDir.rotateRight();
             }
         } else {
             rc.move(dir);

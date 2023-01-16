@@ -12,6 +12,7 @@ public class BugNav {
     static MapLocation collisionLoc = null;
 
     public static void reset() {
+        curDest = null;
         obstacle = false;
     }
 
@@ -22,7 +23,10 @@ public class BugNav {
 
     private static boolean onLine(MapLocation loc) {
         double delta = lineEval(loc.x) - loc.y;
+//        if(infSlope) return delta == 0;
+//        return delta*delta <= slope*slope;
         return delta*delta <= 4;
+
     }
 
     private static void computeSlope(MapLocation p1, MapLocation p2) {
