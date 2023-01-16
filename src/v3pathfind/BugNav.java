@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 public class BugNav {
     static boolean obstacle = false;
+    static MapLocation curDest = null;
     static int dis = 0;
     static boolean infSlope = false;
     static double slope = 0;
@@ -40,6 +41,10 @@ public class BugNav {
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         // Bug2
+        if(dest != curDest) {
+            curDest = dest;
+            obstacle = false;
+        }
         MapLocation curLoc = rc.getLocation();
         Direction dir = curLoc.directionTo(dest);
 

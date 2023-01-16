@@ -22,8 +22,10 @@ public abstract class Robot {
 //        Direction bugNavDir = BugNav.getDir(rc, dest);
         if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
             BugNav.reset();
+
+            // TODO: weight differently
             Direction randomDir = Random.nextDir();
-//            rc.setIndicatorString("bump");
+            rc.setIndicatorString("bump");
             for(int i = 0; i < 8; ++i) {
                 if(rc.canMove(randomDir)) {
                     rc.move(randomDir);
