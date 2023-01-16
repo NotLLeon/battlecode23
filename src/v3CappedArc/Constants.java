@@ -1,4 +1,4 @@
-package v3Capped;
+package v3CappedArc;
 
 public class Constants {
     // weights for explore
@@ -12,10 +12,4 @@ public class Constants {
     // indices for comms
     static int IDX_NUM_HQS = 63;
     static int NUM_WELLS_STORED;
-
-    // tracking for exploration
-
-    static int NUM_TRACKED_LOCATIONS = 3;
-
-    static int MOVES_TO_TRACK_LOCATION = 8;
 }

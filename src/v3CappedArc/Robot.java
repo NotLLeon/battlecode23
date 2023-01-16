@@ -1,4 +1,4 @@
-package v3Capped;
+package v3CappedArc;
 
 import battlecode.common.*;
 

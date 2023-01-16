@@ -1,8 +1,8 @@
-package v3Capped;
+package v3_2;
 
 import battlecode.common.*;
 
-public class Launcher extends Robot{
+public class Launcher extends Robot {
 
     static MapLocation targetHq = null;
 
@@ -32,6 +32,7 @@ public class Launcher extends Robot{
         }
         rc.setIndicatorString("Target:" + targetHq);
         // Move if possible
+        // if 
         moveTo(rc, targetHq);
 
         // Attack if possible
@@ -46,6 +47,9 @@ public class Launcher extends Robot{
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.HEADQUARTERS) continue;
             int enemyHealth = enemy.getHealth();
+            if (enemy.type == RobotType.LAUNCHER) {
+                enemyHealth -= 200;
+            }
             int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
             if (enemyHealth < lowestHealth) {
                 target = enemy;

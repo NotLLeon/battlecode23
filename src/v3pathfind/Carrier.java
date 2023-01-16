@@ -1,4 +1,4 @@
-package v3Capped;
+package v3pathfind;
 
 import battlecode.common.*;
 
@@ -58,7 +58,10 @@ public class Carrier extends Robot{
                     current_objective = well_one.getMapLocation();
                     state = CARRIER_STATE.MOVE_TO_WELL;
                 } else {
-                    exploreNewArea(rc);
+                    Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
+                    if (rc.canMove(dir)) {
+                        rc.move(dir);
+                    }
                 } 
             break;
             case MOVE_TO_WELL:
@@ -94,7 +97,6 @@ public class Carrier extends Robot{
                         if (rc.canTakeAnchor(current_objective, Anchor.STANDARD)) {
                             rc.takeAnchor(current_objective, Anchor.STANDARD);
                             state = CARRIER_STATE.ANCHOR;
-                            System.out.println("Can take anchor");
                         } else {
                             state = CARRIER_STATE.EXPLORING;
                         }
@@ -128,7 +130,10 @@ public class Carrier extends Robot{
                     current_objective = rc.senseNearbyIslandLocations(islands[0])[0];
                     state = CARRIER_STATE.SKY_ISLAND;
                 } else {
-                    exploreNewArea(rc);
+                    Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
+                    if (rc.canMove(dir)) {
+                        rc.move(dir);
+                    }
                 } 
             break;
             case SKY_ISLAND:

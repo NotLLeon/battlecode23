@@ -1,4 +1,4 @@
-package v3Capped;
+package v4;
 
 import battlecode.common.Direction;
 
