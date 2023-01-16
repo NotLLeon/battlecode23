@@ -15,21 +15,23 @@ public class Headquarters extends Robot {
 
         if(turnCount == 1) {
             if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
-           Comms.writeHQ(rc, rc.getLocation());
-           hqCount = rc.getRobotCount();
+            Comms.writeHQ(rc, rc.getLocation());
+            hqCount = rc.getRobotCount();
+
+            WellInfo[] wells = rc.senseNearbyWells();
+            for (WellInfo well : wells) {
+                Comms.writeWellLoc(rc, Comms.encodeWellLoc(rc, well.getMapLocation()), well.getResourceType());
+            }
         }
 
         MapLocation spawnLoc = getBuildLoc(rc);
 
-        if(smallMap && turnCount <= 3) {
-            rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
+        if(turnCount <= 3) {
+            if(smallMap) rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
+            else rc.buildRobot(RobotType.CARRIER, spawnLoc);
             return;
         }
 
-        if(!smallMap && turnCount <= 4) {
-            rc.buildRobot(RobotType.CARRIER, spawnLoc);
-            return;
-        }
 //        int raw = rc.readSharedArray(index)-1;
 
 //        int num_islands = Comms.getNumIslands(rc);
@@ -62,9 +64,12 @@ public class Headquarters extends Robot {
 
         if(currRobotCount > 30*hqCount) return;
 
+
+        int weight = 2;
+        if(turnCount < 250) weight = 4;
         RobotType tryFirst = null;
         RobotType trySecond = null;
-        if(Random.nextBoolean()) {
+        if(Random.nextInt(weight) == 0) {
             tryFirst = RobotType.CARRIER;
             trySecond = RobotType.LAUNCHER;
         } else {
