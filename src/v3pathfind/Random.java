@@ -1,4 +1,4 @@
-package v3Capped;
+package v3pathfind;
 
 import battlecode.common.Direction;
 
