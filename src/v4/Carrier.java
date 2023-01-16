@@ -29,7 +29,7 @@ public class Carrier extends Robot {
         if (random_choice != 0) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
                 //Set to 4 to be impossible (temp).
-                if (Random.nextInt(3) == 1) {
+                if (Random.nextInt(2) == 1) {
                     //Adamantium
                     int random_index = Random.nextInt(num_ad_wells);
                     current_objective = Comms.getAdWell(rc, random_index);
