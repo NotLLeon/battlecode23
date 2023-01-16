@@ -5,6 +5,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.ResourceType;
 import battlecode.common.RobotController;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class Comms {
@@ -142,6 +143,12 @@ public class Comms {
                 rc.writeSharedArray(Constants.IDX_NUM_ISLANDS, num_islands);
                 break;
             }
+        }
+    }
+    public static void writeIslandLocs(RobotController rc, HashMap<Integer, Integer> locs) throws GameActionException{
+        //System.out.println("Writing locs");
+        for (int i : locs.keySet()) {
+            writeIslandLoc(rc, locs.get(i), i);
         }
     }
 }
