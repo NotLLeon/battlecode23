@@ -58,10 +58,7 @@ public class Carrier extends Robot{
                     current_objective = well_one.getMapLocation();
                     state = CARRIER_STATE.MOVE_TO_WELL;
                 } else {
-                    Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
+                    exploreNewArea(rc);
                 } 
             break;
             case MOVE_TO_WELL:
@@ -131,10 +128,7 @@ public class Carrier extends Robot{
                     current_objective = rc.senseNearbyIslandLocations(islands[0])[0];
                     state = CARRIER_STATE.SKY_ISLAND;
                 } else {
-                    Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
+                    exploreNewArea(rc);
                 } 
             break;
             case SKY_ISLAND:
