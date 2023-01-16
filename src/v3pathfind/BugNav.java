@@ -34,7 +34,8 @@ public class BugNav {
     }
 
     private static boolean isPassable(RobotController rc, Direction dir) throws GameActionException {
-        return rc.senseMapInfo(rc.getLocation().add(dir)).isPassable();
+        MapLocation loc = rc.getLocation().add(dir);
+        return rc.onTheMap(loc) && rc.senseMapInfo(loc).isPassable();
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
@@ -73,7 +74,7 @@ public class BugNav {
             }
 
             if(curLoc == collisionLoc) return Direction.CENTER;
-            nextDir = traceDir.rotateLeft().opposite();
+            nextDir = traceDir.rotateRight().rotateRight();
         }
         for(int i = 0; i < 8; ++i) {
             if(isPassable(rc, nextDir)) {
