@@ -4,40 +4,20 @@ import battlecode.common.*;
 
 public class Launcher extends Robot {
 
-    static MapLocation originHq = null;
-    static MapLocation targetHq = null;
-
-    static boolean delayRush = false;
+    private static MapLocation originHq = null;
+    private static MapLocation[] targets;
+    private static int targetInd = 0;
+    private static boolean onTarget = false;
+    private static int roundsNearTarget = 0;
+    private static boolean delayRush = false;
 
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
         // Get target location
         // FIXME: assumes 180 deg rotation
 
         if(turnCount == 1) {
-
-            MapLocation [] Hqs = Comms.getHQs(rc);
-            MapLocation curLoc = rc.getLocation();
-
-            int mapW = rc.getMapWidth();
-            int mapH = rc.getMapHeight();
-            if(mapW >= 30 && mapH >= 30) delayRush = true;
-            int closestDis = 999999;
-
-            for(MapLocation hq : Hqs) {
-                int dis = curLoc.distanceSquaredTo(hq);
-                if(dis < closestDis) {
-                    closestDis = dis;
-                    originHq = hq;
-                }
-            }
-
-            targetHq = new MapLocation(
-                    mapW-originHq.x-1,
-                    mapH-originHq.y-1
-            );
+            generateTargets(rc);
         }
-        rc.setIndicatorString("Target:" + targetHq);
-
         // Attack if possible
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -46,9 +26,12 @@ public class Launcher extends Robot {
         int smallestDistance = 100;
         RobotInfo target = null;
 
-
+        boolean canSeeHq = false;
         for (RobotInfo enemy : enemies) {
-            if(enemy.getType() == RobotType.HEADQUARTERS) continue;
+            if(enemy.getType() == RobotType.HEADQUARTERS) {
+                canSeeHq = true;
+                continue;
+            }
             int enemyHealth = enemy.getHealth();
             if (enemy.type == RobotType.LAUNCHER) {
                 enemyHealth -= 200;
@@ -65,13 +48,13 @@ public class Launcher extends Robot {
                 }
             }
         }
+        MapLocation curLoc = rc.getLocation();
         if (target != null){
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
-        } else {
+        } else if(!onTarget){
             if(delayRush && rc.getRoundNum() < 250) {
                 Direction randomDir = Random.nextDir();
-                MapLocation curLoc = rc.getLocation();
                 for(int i = 0; i < 8; ++i) {
                     MapLocation nextLoc = curLoc.add(randomDir);
                     if(rc.canMove(randomDir) && nextLoc.isWithinDistanceSquared(originHq, 16)) {
@@ -80,12 +63,59 @@ public class Launcher extends Robot {
                     }
                 }
             } else {
-                moveToRadius(rc, targetHq, 2);
-                if(!isReachable(rc, targetHq)) {
-//                    rc.disintegrate();
-                    System.out.println("cant reach" + targetHq);
+                MapLocation curTarget = targets[targetInd];
+                moveToRadius(rc, curTarget, 4);
+                if(curLoc.isWithinDistanceSquared(curTarget, 4)) {
+                    if(!canSeeHq) nextTarget();
+                    else onTarget = true;
+                } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
+                    roundsNearTarget++;
+                }
+                if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
+                    nextTarget();
+                    rc.setIndicatorString("moving to next target");
                 }
             }
         }
     }
+
+    private static void nextTarget() {
+        targetInd = (targetInd+1)%targets.length;
+        roundsNearTarget = 0;
+    }
+
+    private static void generateTargets(RobotController rc) throws GameActionException {
+        MapLocation [] Hqs = Comms.getHQs(rc);
+        MapLocation curLoc = rc.getLocation();
+
+        int mapW = rc.getMapWidth();
+        int mapH = rc.getMapHeight();
+        if(mapW >= 30 && mapH >= 30) delayRush = true;
+        int closestDis = 999999;
+
+        for(MapLocation hq : Hqs) {
+            int dis = curLoc.distanceSquaredTo(hq);
+            if(dis < closestDis) {
+                closestDis = dis;
+                originHq = hq;
+            }
+        }
+        targets = new MapLocation[4];
+        targets[0] = new MapLocation(
+                mapW-originHq.x-1,
+                mapH-originHq.y-1
+        );
+        targets[1] = new MapLocation(
+                mapW-originHq.x-1,
+                originHq.y
+        );
+        targets[2] = new MapLocation(
+                originHq.x,
+                mapH-originHq.y-1
+        );
+        targets[3] = originHq;
+
+    }
+
+
 }

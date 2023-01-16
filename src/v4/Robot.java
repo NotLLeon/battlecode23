@@ -45,6 +45,9 @@ public abstract class Robot {
                     dir.rotateRight(),
                     dir.rotateRight().rotateRight(),
                     dir.rotateLeft().rotateLeft(),
+                    dir.rotateLeft().opposite(),
+                    dir.rotateRight().opposite(),
+                    dir.opposite()
             };
             rc.setIndicatorString("bump");
             for (Direction direction : dirs) {
