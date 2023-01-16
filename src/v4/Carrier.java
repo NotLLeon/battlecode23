@@ -15,7 +15,6 @@ public class Carrier extends Robot {
     static HashSet<Integer> mana_well_locs = new HashSet<Integer>();
     static HashSet<Integer> elixir_well_locs = new HashSet<Integer>();
     static HashMap<Integer, Integer> island_locs = new HashMap<Integer, Integer>();
-
     static CARRIER_STATE state = CARRIER_STATE.EXPLORING;
     static MapLocation current_objective = new MapLocation(0, 0);
     static int island_objective_id = 0;

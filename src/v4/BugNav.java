@@ -1,22 +1,26 @@
 package v4;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class BugNav {
-    static boolean obstacle = false;
-    static MapLocation curDest = null;
-    static int dis = 0;
-    static boolean infSlope = false;
-    static double slope = 0;
-    static Direction traceDir = null;
-    static MapLocation collisionLoc = null;
+    private static boolean obstacle = false;
+    private static MapLocation curDest = null;
+    private static int dis = 0;
+    private static boolean infSlope = false;
+    private static double slope = 0;
+    private static Direction traceDir = null;
+    private static MapLocation collisionLoc = null;
+
+    static boolean isReachable = true;
 
     public static void reset() {
         curDest = null;
         obstacle = false;
+        isReachable = true;
+    }
+
+    public static boolean isReachable(MapLocation dest) {
+        return dest != curDest || isReachable;
     }
 
     private static double lineEval(double x) {
@@ -49,17 +53,17 @@ public class BugNav {
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         // Bug2
         if(dest != curDest) {
+            reset();
             curDest = dest;
-            obstacle = false;
         }
         MapLocation curLoc = rc.getLocation();
         Direction dir = curLoc.directionTo(dest);
 
-        if(obstacle) rc.setIndicatorString(
-                "curLoc: " + curLoc
-                        + "dest: "+ dest
-                        + "collisionLoc: " + collisionLoc
-                        + "lineDiff: " + (lineEval(curLoc.x) - curLoc.y));
+//        if(obstacle) rc.setIndicatorString(
+//                "curLoc: " + curLoc
+//                        + "dest: "+ dest
+//                        + "collisionLoc: " + collisionLoc
+//                        + "lineDiff: " + (lineEval(curLoc.x) - curLoc.y));
 
         Direction nextDir = null;
         if(!obstacle) {
@@ -85,7 +89,10 @@ public class BugNav {
                 return dir;
             }
 
-            if(curLoc == collisionLoc) return Direction.CENTER;
+            if(curLoc == collisionLoc) {
+                isReachable = false;
+                return Direction.CENTER;
+            }
             nextDir = traceDir.rotateRight().rotateRight();
         }
         for(int i = 0; i < 8; ++i) {
