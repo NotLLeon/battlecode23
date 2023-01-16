@@ -59,11 +59,11 @@ public class BugNav {
         MapLocation curLoc = rc.getLocation();
         Direction dir = curLoc.directionTo(dest);
 
-        if(obstacle) rc.setIndicatorString(
-                "curLoc: " + curLoc
-                        + "dest: "+ dest
-                        + "collisionLoc: " + collisionLoc
-                        + "lineDiff: " + (lineEval(curLoc.x) - curLoc.y));
+//        if(obstacle) rc.setIndicatorString(
+//                "curLoc: " + curLoc
+//                        + "dest: "+ dest
+//                        + "collisionLoc: " + collisionLoc
+//                        + "lineDiff: " + (lineEval(curLoc.x) - curLoc.y));
 
         Direction nextDir = null;
         if(!obstacle) {

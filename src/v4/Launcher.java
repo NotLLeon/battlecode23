@@ -16,7 +16,7 @@ public class Launcher extends Robot {
             generateTargets(rc);
         }
         MapLocation curLoc = rc.getLocation();
-        tryToShoot(rc);
+        if(tryToShoot(rc)) return;
         if(!onTarget){
             if(delayRush && rc.getRoundNum() < 250) {
                 Direction randomDir = Random.nextDir();
@@ -55,7 +55,7 @@ public class Launcher extends Robot {
         return false;
     }
 
-    private static void tryToShoot(RobotController rc) throws GameActionException {
+    private static boolean tryToShoot(RobotController rc) throws GameActionException {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
@@ -81,10 +81,11 @@ public class Launcher extends Robot {
                 }
             }
         }
-        if (target != null){
-            if (rc.canAttack(target.getLocation()))
-                rc.attack(target.getLocation());
+        if (target != null && rc.canAttack(target.getLocation())) {
+            rc.attack(target.getLocation());
+            return true;
         }
+        return false;
     }
 
     private static void nextTarget() {
