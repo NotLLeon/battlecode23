@@ -4,11 +4,15 @@ import battlecode.common.*;
 
 public class Launcher extends Robot {
 
+    static MapLocation originHq = null;
     static MapLocation targetHq = null;
+
+    static boolean delayRush = false;
 
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
         // Get target location
         // FIXME: assumes 180 deg rotation
+
         if(turnCount == 1) {
 
             MapLocation [] Hqs = Comms.getHQs(rc);
@@ -16,24 +20,23 @@ public class Launcher extends Robot {
 
             int mapW = rc.getMapWidth();
             int mapH = rc.getMapHeight();
+            if(mapW >= 30 && mapH >= 30) delayRush = true;
             int closestDis = 999999;
 
             for(MapLocation hq : Hqs) {
-                MapLocation enemyHq = new MapLocation(
-                        mapW-hq.x-1,
-                        mapH-hq.y-1
-                );
-                int dis = curLoc.distanceSquaredTo(enemyHq);
+                int dis = curLoc.distanceSquaredTo(hq);
                 if(dis < closestDis) {
                     closestDis = dis;
-                    targetHq = enemyHq;
+                    originHq = hq;
                 }
             }
+
+            targetHq = new MapLocation(
+                    mapW-originHq.x-1,
+                    mapH-originHq.y-1
+            );
         }
         rc.setIndicatorString("Target:" + targetHq);
-        // Move if possible
-        // if 
-        moveTo(rc, targetHq);
 
         // Attack if possible
         int radius = rc.getType().actionRadiusSquared;
@@ -65,6 +68,24 @@ public class Launcher extends Robot {
         if (target != null){
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
+        } else {
+            if(delayRush && rc.getRoundNum() < 250) {
+                Direction randomDir = Random.nextDir();
+                MapLocation curLoc = rc.getLocation();
+                for(int i = 0; i < 8; ++i) {
+                    MapLocation nextLoc = curLoc.add(randomDir);
+                    if(rc.canMove(randomDir) && nextLoc.isWithinDistanceSquared(originHq, 16)) {
+                        rc.move(randomDir);
+                        break;
+                    }
+                }
+            } else {
+                moveToRadius(rc, targetHq, 2);
+                if(!isReachable(rc, targetHq)) {
+//                    rc.disintegrate();
+                    System.out.println("cant reach" + targetHq);
+                }
+            }
         }
     }
 }
