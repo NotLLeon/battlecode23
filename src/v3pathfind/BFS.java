@@ -2,10 +2,7 @@ package v3pathfind;
 
 import battlecode.common.*;
 
-import java.util.Queue;
-import java.util.LinkedList;
-import java.util.HashSet;
-import java.util.HashMap;
+import java.util.*;
 
 public class BFS {
 
@@ -20,35 +17,14 @@ public class BFS {
             Direction.NORTHWEST,
     };
 
-    static boolean onPath = false;
 
     static MapLocation[] path;
 
-    static int pathInd = 0;
-
-    public static void reset(){
-        onPath = false;
-    }
-
-    public static boolean getDir(RobotController rc, MapLocation dest) throws GameActionException {
-        if(!onPath) {
-            if(!getPath(rc, dest)) return true;
-            onPath = true;
-            return true;
-        } else {
-            if(pathInd == path.length) {
-                onPath = false;
-                return true;
-            } else {
-                Direction md = rc.getLocation().directionTo(path[pathInd++]);
-                if(rc.canMove(md)) {
-                    rc.move(md);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
+    // Assumes hasDir is true
+    public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
+        boolean work = getPath(rc, dest);
+        if(!work) return Direction.CENTER;
+        return path[0].directionTo(path[1]);
     }
 
     public static boolean getPath(RobotController rc, MapLocation dest) throws GameActionException {
@@ -60,7 +36,6 @@ public class BFS {
 
         MapLocation curLoc = rc.getLocation();
         q.add(curLoc);
-        prev.put(curLoc, null);
         vis.add(curLoc);
         MapLocation loc = curLoc;
         for(int i = 0; i*i < visionRadius; ++i) {
@@ -77,6 +52,7 @@ public class BFS {
                     && rc.onTheMap(nextLoc)
                     && rc.senseMapInfo(nextLoc).isPassable()
                     && !vis.contains(nextLoc)) {
+                    prev.put(nextLoc, cur);
                     if(opts.contains(nextLoc)) {
                         best = nextLoc;
                         break loop1;
@@ -87,15 +63,15 @@ public class BFS {
             }
         }
         if(best == null) return false;
-        LinkedList<MapLocation> prevs = new LinkedList<MapLocation>();
+        LinkedList<MapLocation> prevs = new LinkedList<>();
         MapLocation pp = best;
         while(pp != null) {
             prevs.addFirst(pp);
             pp = prev.get(pp);
         }
-
-        path = prevs.toArray(new MapLocation[0]);
-        pathInd = 0;
+        int size = prevs.size();
+        path = prevs.toArray(new MapLocation[size]);
+        rc.setIndicatorString(Arrays.toString(path));
         return true;
     }
 

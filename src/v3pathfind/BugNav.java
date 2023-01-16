@@ -32,7 +32,12 @@ public class BugNav {
         slope = ((double)(p1.y-p2.y))/(p1.x-p2.x);
         infSlope = false;
     }
-    public static boolean moveTo(RobotController rc, MapLocation dest) throws GameActionException {
+
+    private static boolean isPassable(RobotController rc, Direction dir) throws GameActionException {
+        return rc.senseMapInfo(rc.getLocation().add(dir)).isPassable();
+    }
+
+    public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         // Bug2
         MapLocation curLoc = rc.getLocation();
         Direction dir = curLoc.directionTo(dest);
@@ -45,10 +50,9 @@ public class BugNav {
 
         Direction nextDir = null;
         if(!obstacle) {
-            if (rc.canMove(dir)) {
+            if (isPassable(rc, dir)) {
                 rc.setIndicatorString("move: " + dir);
-                rc.move(dir);
-                return true;
+                return dir;
             }
 
             obstacle = true;
@@ -61,26 +65,24 @@ public class BugNav {
         } else {
             int curDis = curLoc.distanceSquaredTo(dest);
 //            rc.setIndicatorString(dis + " " + curDis + " " +onLine(curLoc) + " " + (lineEval(curLoc.x) - curLoc.y) + " " + collisionLoc);
-            if(onLine(curLoc) && curDis < dis && rc.canMove(dir)) {
+            if(onLine(curLoc) && curDis < dis && isPassable(rc, dir)) {
 
 //                rc.setIndicatorString("obstacle cleared " + dir);
                 obstacle = false;
-                rc.move(dir);
-                return true;
+                return dir;
             }
 
-            if(curLoc == collisionLoc) return false;
+            if(curLoc == collisionLoc) return Direction.CENTER;
             nextDir = traceDir.rotateLeft().opposite();
         }
         for(int i = 0; i < 8; ++i) {
-            if(rc.canMove(nextDir)) {
+            if(isPassable(rc, nextDir)) {
                 traceDir = nextDir;
-                rc.move(traceDir);
-                return true;
+                return traceDir;
             } else {
                 nextDir = nextDir.rotateLeft();
             }
         }
-        return false;
+        return Direction.CENTER;
     }
 }
