@@ -26,6 +26,16 @@ public class Comms {
         return new MapLocation(x, y);
     }
 
+    public static boolean knowsIsland(RobotController rc, int island_id) throws GameActionException {
+        int index = 0;
+        for (int i = 0; i < getNumIslands(rc); i++) {
+            index = getIslandID(rc, i);
+            if (island_id == index) {
+                return true;
+            }
+        }
+        return false;
+    }
     public static MapLocation[] getHQs(RobotController rc) throws GameActionException {
         int numHqs = getNumHQs(rc);
         MapLocation [] hqs = new MapLocation[numHqs];

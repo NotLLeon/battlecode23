@@ -7,7 +7,7 @@ import java.util.HashSet;
 public class Carrier extends Robot {
 
     public enum CARRIER_STATE {
-        COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL, ANCHORING
+        COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL, ANCHORING, ISLAND_SEARCH
     }
 
     static HashSet<Integer> ad_well_locs = new HashSet<Integer>();
@@ -17,6 +17,7 @@ public class Carrier extends Robot {
     static CARRIER_STATE state = CARRIER_STATE.EXPLORING;
     static MapLocation current_objective = new MapLocation(0, 0);
     static int island_objective_id = 0;
+    static int attempts = 0;
 
     private static void decide_role(RobotController rc) throws GameActionException {
         //int num_wells = Comms.getNumWells(rc);
@@ -59,8 +60,19 @@ public class Carrier extends Robot {
             decide_role(rc);
         }
 
+        //Check for nearby launchers
+        RobotInfo[] robotInfo = rc.senseNearbyRobots();
+
+        for (int i = 0; i < robotInfo.length; i++) {
+            if (robotInfo[i].getTeam() != rc.getTeam()
+                    && robotInfo[i].type == RobotType.LAUNCHER
+                    && rc.canAttack(robotInfo[i].getLocation())) {
+                rc.attack(robotInfo[i].getLocation());
+            }
+        }
+
         switch (state) {
-            case EXPLORING:
+            case EXPLORING: {
                 rc.setIndicatorString("EXPLORING");
 
                 WellInfo[] wells = rc.senseNearbyWells();
@@ -86,7 +98,8 @@ public class Carrier extends Robot {
                     if (rc.canMove(dir)) {
                         rc.move(dir);
                     }
-                } 
+                }
+            }
             break;
             case MOVE_TO_WELL:
                 rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
@@ -115,7 +128,7 @@ public class Carrier extends Robot {
                     Comms.writeWellLocs(rc, mana_well_locs, ResourceType.MANA);
 
                     int num_islands = Comms.getNumIslands(rc);
-                    if (num_islands > 0) {
+                    if (num_islands > 0 && rc.senseRobotAtLocation(current_objective).getTotalAnchors() > 0) {
                         //Uniformly, randomly, pick an island to go to.
                         int random = Random.nextInt(num_islands);
                         // isn't actually being used
@@ -124,6 +137,7 @@ public class Carrier extends Robot {
                             current_objective = Comms.getIsland(rc, random);
                             island_objective_id = Comms.getIslandID(rc, random);
                             state = CARRIER_STATE.ANCHORING;
+                            attempts = 0;
                             break;
                         }
                         if (rc.canTakeAnchor(current_objective, Anchor.STANDARD)) {
@@ -131,6 +145,7 @@ public class Carrier extends Robot {
                             current_objective = Comms.getIsland(rc, random);
                             island_objective_id = Comms.getIslandID(rc, random);
                             state = CARRIER_STATE.ANCHORING;
+                            attempts = 0;
                             break;
                         }
                         if (rc.senseRobotAtLocation(current_objective).getTotalAnchors() > 0) {
@@ -160,22 +175,71 @@ public class Carrier extends Robot {
                     state = CARRIER_STATE.RETURNING;
                 }
             break;
+            case ISLAND_SEARCH: {
+                rc.setIndicatorString("ISLAND SEARCH");
+
+                if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
+                    WellInfo[] wells = rc.senseNearbyWells();
+
+                    for (int i = 0; i < wells.length; i++) {
+                        if (wells[i].getResourceType() == ResourceType.ADAMANTIUM) {
+                            ad_well_locs.add(Comms.encodeWellLoc(rc, wells[i].getMapLocation()));
+                        } else if (wells[i].getResourceType() == ResourceType.MANA) {
+                            mana_well_locs.add(Comms.encodeWellLoc(rc, wells[i].getMapLocation()));
+                        } else if (wells[i].getResourceType() == ResourceType.ELIXIR) {
+                            mana_well_locs.add(Comms.encodeWellLoc(rc, wells[i].getMapLocation()));
+                        }
+                    }
+
+                    int[] island_ids = rc.senseNearbyIslands();
+
+                    for (int i = 0; i < island_ids.length; i++) {
+                        if (!Comms.knowsIsland(rc, island_ids[i])) {
+                            MapLocation loc = rc.senseNearbyIslandLocations(island_ids[i])[0];
+                            current_objective = loc;
+                            island_objective_id = island_ids[i];
+                            state = CARRIER_STATE.ANCHORING;
+                        }
+                    }
+
+                    int island_id = rc.senseIsland(current_location);
+
+                    if (island_id != -1 && rc.senseAnchor(island_id) != null) {
+                        if (rc.canPlaceAnchor()) {
+                            rc.placeAnchor();
+                            current_objective = getClosestHQ(rc);
+                            state = CARRIER_STATE.RETURNING;
+                        }
+                    } else {
+                        Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
+                        if (rc.canMove(dir)) {
+                            rc.move(dir);
+                        }
+                    }
+                } else {
+                    current_objective = getClosestHQ(rc);
+                    state = CARRIER_STATE.RETURNING;
+                }
+            }
             case ANCHORING:
                 rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
                 int island_id = rc.senseIsland(current_location);
                 if (island_id != -1) {
                     rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");
-                    if (rc.canPlaceAnchor()) {
+                    if (rc.senseAnchor(island_id) != null) {
+                        int random = Random.nextInt(Comms.getNumIslands(rc));
+                        current_objective = Comms.getIsland(rc, random);
+                        island_objective_id = Comms.getIslandID(rc, random);
+                        attempts++;
+                    } else if (rc.canPlaceAnchor()) {
                         rc.placeAnchor();
                         current_objective = getClosestHQ(rc);
                         state = CARRIER_STATE.RETURNING;
                         break;
                     }
-                    if (rc.senseAnchor(island_id) != null) {
-                        int random = Random.nextInt(Comms.getNumIslands(rc));
-                        current_objective = Comms.getIsland(rc, random);
-                        island_objective_id = Comms.getIslandID(rc, random);
-                    }
+                }
+                if (attempts >= Comms.getNumIslands(rc)) {
+                    state = CARRIER_STATE.ISLAND_SEARCH;
                 }
                 moveTo(rc, current_objective);
                 break;
