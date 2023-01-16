@@ -86,12 +86,9 @@ public abstract class Robot {
     }
 
     public static void exploreNewArea(RobotController rc) throws GameActionException {
-        String indicator = "";
-        for (MapLocation l : prevLocs) {
-            if (l != null) indicator += l + " ";
-        }
+        if (!rc.isMovementReady()) return;
+
         if (prevLocs[0] == null) {
-            rc.setIndicatorString("MOVING RANDOMLY");
             Direction dir = Random.nextDir();
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
                 if (!rc.canMove(dir)) {
@@ -104,7 +101,6 @@ public abstract class Robot {
             }
             rc.move(dir);
         } else {
-            rc.setIndicatorString("MOVING AWAY FROM" + indicator);
             Direction dir = exploreAwayFromLoc(rc, prevLocs[0]);
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
                 if (rc.canMove(dir)) {
