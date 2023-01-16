@@ -24,40 +24,40 @@ public class Headquarters extends Robot {
         //     MapLocation island = Comms.getIsland(rc, i);
         // }
         int currRobotCount = rc.getRobotCount();
-        if (currRobotCount <= (rc.getMapWidth()*rc.getMapHeight()/5)) {
-            RobotInfo[] nearby_enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
-            int enemyLaunchers = 0;
-            for (int i = 0; i < nearby_enemies.length; i++) {
-                if (nearby_enemies[i].type == RobotType.LAUNCHER) {
-                    enemyLaunchers++;
-                }
+//        if (currRobotCount <= (rc.getMapWidth()*rc.getMapHeight()/5)) {
+        RobotInfo[] nearby_enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
+        int enemyLaunchers = 0;
+        for (int i = 0; i < nearby_enemies.length; i++) {
+            if (nearby_enemies[i].type == RobotType.LAUNCHER) {
+                enemyLaunchers++;
             }
+        }
 
-            if (currRobotCount > 20*hqCount
-                    && turnCount >= 1000
-                    && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLoc)
-                    && turnCount % 100 == 0) {
-                rc.buildRobot(RobotType.AMPLIFIER, spawnLoc);
-            }
-            if (currRobotCount > 20*hqCount
-                    && turnCount >= 1250
-                    && rc.canBuildAnchor(Anchor.STANDARD)
-                    && rc.getNumAnchors(Anchor.STANDARD) < 1
-                    && turnCount % 101 == 0) {
-                rc.buildAnchor(Anchor.STANDARD);
-            }
+        if (currRobotCount > 20*hqCount
+                && turnCount >= 1000
+                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLoc)
+                && turnCount % 100 == 0) {
+            rc.buildRobot(RobotType.AMPLIFIER, spawnLoc);
+        }
+        if (currRobotCount > 20*hqCount
+                && turnCount >= 1250
+                && rc.canBuildAnchor(Anchor.STANDARD)
+                && rc.getNumAnchors(Anchor.STANDARD) < 1
+                && turnCount % 101 == 0) {
+            rc.buildAnchor(Anchor.STANDARD);
+        }
 
-            if(currRobotCount > 30*hqCount) return;
+        if(currRobotCount > 30*hqCount) return;
 
-            if(turnCount < 500 && rc.canBuildRobot(RobotType.LAUNCHER, spawnLoc)) {
+        if(turnCount < 500 && rc.canBuildRobot(RobotType.LAUNCHER, spawnLoc)) {
+            rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
+        } else {
+            if(Random.nextBoolean() && rc.canBuildRobot(RobotType.CARRIER, spawnLoc)) {
+                rc.buildRobot(RobotType.CARRIER, spawnLoc);
+            } else if(rc.canBuildRobot(RobotType.LAUNCHER, spawnLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
-            } else {
-                if(Random.nextBoolean() && rc.canBuildRobot(RobotType.CARRIER, spawnLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, spawnLoc);
-                } else if(rc.canBuildRobot(RobotType.LAUNCHER, spawnLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
-                }
             }
+        }
 //            if (Random.nextBoolean() && enemyLaunchers == 0) {
 //                // Let's try to build a carrier.
 //                // rc.setIndicatorString("Trying to build a carrier");
@@ -74,7 +74,6 @@ public class Headquarters extends Robot {
 //                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
 //                }
 //            }
-        }
     }
     static MapLocation getBuildLoc(RobotController rc) throws GameActionException {
         int radius = rc.getType().actionRadiusSquared;
