@@ -5,7 +5,7 @@ import battlecode.common.*;
 public class Headquarters extends Robot {
     static int index = 0;
     static int hqCount = 0;
-    static int amplifiers = 5;
+    // static int amplifiers = 5;
 
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
@@ -50,12 +50,11 @@ public class Headquarters extends Robot {
                     rc.buildRobot(RobotType.LAUNCHER, newLoc);
                 }
             }
+        } else if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc) && turnCount % 100 == 0 && turnCount > 500) {
+            rc.buildRobot(RobotType.AMPLIFIER, newLoc);
         } else if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getNumAnchors(Anchor.STANDARD) < 1) {
             rc.buildAnchor(Anchor.STANDARD);
-        } else if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc) && turnCount % 10 == 0 && amplifiers > 0 && currRobotCount < 30 * hqCount + 5) {
-            rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-            amplifiers--;
-        }
+        } 
 
     }
 }

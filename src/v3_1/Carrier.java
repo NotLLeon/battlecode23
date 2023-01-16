@@ -140,7 +140,7 @@ public class Carrier extends Robot {
                 }
             break;
             case ANCHORING:
-                rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ")");
+                rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
                 if (current_location.distanceSquaredTo(current_objective) == 0) {
                     rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");
                     if (rc.canPlaceAnchor()) {

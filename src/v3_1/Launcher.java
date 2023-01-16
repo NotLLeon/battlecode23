@@ -32,6 +32,7 @@ public class Launcher extends Robot{
         }
         rc.setIndicatorString("Target:" + targetHq);
         // Move if possible
+        // if 
         moveTo(rc, targetHq);
 
         // Attack if possible

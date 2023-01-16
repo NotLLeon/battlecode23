@@ -1,44 +1,83 @@
 package v3_1;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public abstract class Robot {
 
-    static Direction currentDirection = null;
+    static boolean obstacle = false;
+    static int dis = 0;
+    static boolean infSlope = false;
+    static double slope = 0;
+    static Direction traceDir = null;
+    static MapLocation collisionLoc = null;
 
-    public static void moveTo(RobotController rc, MapLocation dest) throws GameActionException {
+    private static double lineEval(double x) {
+        if(infSlope) return collisionLoc.x;
+        return slope*(x-collisionLoc.x) + collisionLoc.y;
+    }
 
-        if (rc.getLocation().equals(dest)) {
+    private static boolean onLine(MapLocation loc) {
+        double delta = lineEval(loc.x) - loc.y;
+        return delta*delta <= 4;
+    }
+
+    private static void computeSlope(MapLocation p1, MapLocation p2) {
+        if(p1.x == p2.x) {
+            infSlope = true;
             return;
         }
-//        if (!rc.isActionReady()) {
-//            return;
-//        }
-        Direction d = rc.getLocation().directionTo(dest);
-        if (rc.canMove(d)) {
-            rc.move(d);
-            currentDirection = null; // there is no obstacle we're going around
-        } else {
-            // Going around some obstacle: can't move towards d because there's an obstacle there
-            // Idea: keep the obstacle on our right hand
+        slope = ((double)(p1.y-p2.y))/(p1.x-p2.x);
+        infSlope = false;
+    }
+    public static boolean moveTo(RobotController rc, MapLocation dest) throws GameActionException {
+        // Bug2
+        MapLocation curLoc = rc.getLocation();
+       // if(collisionLoc != null) rc.setIndicatorString("" + slope + " "+ collisionLoc + " " + curLoc + " " +lineEval(curLoc.x)+ " "+ (lineEval(curLoc.x) - curLoc.y));
+        //else rc.setIndicatorString("" + slope + " "+ collisionLoc + " " + curLoc);
+        Direction dir = curLoc.directionTo(dest);
+        if (!rc.isMovementReady() || curLoc.equals(dest)) {
+            return true;
+        }
 
-            if (currentDirection == null) {
-                currentDirection = d;
+        Direction nextDir = null;
+        if(!obstacle) {
+            if (rc.canMove(dir)) {
+                rc.move(dir);
+                return true;
             }
-            // Try to move in a way that keeps the obstacle on our right
-            for (int i = 0; i < 8; i++) {
-                if (rc.canMove(currentDirection)) {
-                    rc.move(currentDirection);
-                    currentDirection = currentDirection.rotateRight();
-                    break;
-                } else {
-                    currentDirection = currentDirection.rotateLeft();
-                }
+
+            obstacle = true;
+            computeSlope(curLoc, dest);
+            rc.setIndicatorString("calc line");
+            traceDir = dir;
+            dis = curLoc.distanceSquaredTo(dest);
+            collisionLoc = curLoc;
+            nextDir = dir.rotateLeft();
+        } else {
+            int curDis = curLoc.distanceSquaredTo(dest);
+//            rc.setIndicatorString(dis + " " + curDis + " " +onLine(curLoc) + " " + (lineEval(curLoc.x) - curLoc.y) + " " + collisionLoc);
+//            if(onLine(curLoc) && curDis < dis && rc.canMove(dir)) {
+            if(onLine(curLoc) && rc.canMove(dir)) {
+
+//                rc.setIndicatorString("obstacle cleared " + dir);
+                obstacle = false;
+                rc.move(dir);
+                return true;
+            }
+
+            if(curLoc == collisionLoc) return false;
+            nextDir = traceDir.rotateRight().rotateRight();
+        }
+        for(int i = 0; i < 8; ++i) {
+            if(rc.canMove(nextDir)) {
+                traceDir = nextDir;
+                rc.move(traceDir);
+                return true;
+            } else {
+                nextDir = nextDir.rotateLeft();
             }
         }
+        return false;
     }
     static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
         MapLocation current_location = rc.getLocation();
@@ -57,3 +96,4 @@ public abstract class Robot {
         return new MapLocation(min_loc%rc.getMapWidth(), min_loc/rc.getMapWidth());
     }
 }
+
