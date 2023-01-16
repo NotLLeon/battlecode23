@@ -62,9 +62,10 @@ public abstract class Robot {
         }
         dir = Random.nextDirWeighted(weights, Constants.TOTAL_WEIGHT_DIRECTIONS);
         for(int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
-            if (!rc.canMove(dir)) {
-                dir = Random.nextDirWeighted(weights, Constants.TOTAL_WEIGHT_DIRECTIONS);
+            if (rc.canMove(dir)) {
+                break;
             }
+            dir = Random.nextDirWeighted(weights, Constants.TOTAL_WEIGHT_DIRECTIONS);
         }
         return dir;
     }
@@ -89,7 +90,7 @@ public abstract class Robot {
         for (MapLocation l : prevLocs) {
             if (l != null) indicator += l + " ";
         }
-        if (prevLocs.length == 0) {
+        if (prevLocs[0] == null) {
             rc.setIndicatorString("MOVING RANDOMLY");
             Direction dir = Random.nextDir();
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
@@ -104,7 +105,7 @@ public abstract class Robot {
             rc.move(dir);
         } else {
             rc.setIndicatorString("MOVING AWAY FROM" + indicator);
-            Direction dir = exploreAwayFromLoc(rc, findClosestLoc(rc, prevLocs));
+            Direction dir = exploreAwayFromLoc(rc, prevLocs[0]);
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
                 if (rc.canMove(dir)) {
                     if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
@@ -114,7 +115,7 @@ public abstract class Robot {
                     rc.move(dir);
                     break;
                 }
-                dir = exploreAwayFromLoc(rc, findClosestLoc(rc, prevLocs));
+                dir = exploreAwayFromLoc(rc, prevLocs[0]);
             }
         }
     }
