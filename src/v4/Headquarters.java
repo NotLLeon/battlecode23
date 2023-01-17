@@ -3,6 +3,7 @@ package v4;
 import battlecode.common.*;
 
 public class Headquarters extends Robot {
+
     static int index = 0;
     static int hqCount = 0;
     // static int amplifiers = 5;
@@ -81,23 +82,8 @@ public class Headquarters extends Robot {
         } else if(rc.canBuildRobot(trySecond, spawnLoc)) {
             rc.buildRobot(trySecond, spawnLoc);
         }
-//            if (Random.nextBoolean() && enemyLaunchers == 0) {
-//                // Let's try to build a carrier.
-//                // rc.setIndicatorString("Trying to build a carrier");
-//                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-//                    rc.buildRobot(RobotType.CARRIER, newLoc);
-//                }
-//                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-//                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
-//                }
-//            } else if (enemyLaunchers < 2){
-//                // Let's try to build a launcher.
-//                rc.setIndicatorString("Trying to build a launcher");
-//                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-//                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
-//                }
-//            }
     }
+
     static MapLocation getBuildLoc(RobotController rc) throws GameActionException {
         int radius = rc.getType().actionRadiusSquared;
         MapInfo[] locs = rc.senseNearbyMapInfos(radius);
