@@ -86,22 +86,21 @@ public class Headquarters extends Robot {
     static MapLocation getBuildLoc(RobotController rc) throws GameActionException {
         int radius = rc.getType().actionRadiusSquared;
         MapInfo[] locs = rc.senseNearbyMapInfos(radius);
-        int sz = locs.length;
         int spawnable = 0;
 
         // FIXME: jank, don't wanna make an arraylist
-        for(int i = 0; i < sz; ++i) {
-            if(locs[i].isPassable()
-                    && !rc.isLocationOccupied(locs[i].getMapLocation())) {
+        for (MapInfo mapInfo : locs) {
+            if (mapInfo.isPassable()
+                    && !rc.isLocationOccupied(mapInfo.getMapLocation())) {
                 spawnable++;
             }
         }
         if(spawnable == 0) return rc.getLocation();
         MapLocation[] spawnableLocs = new MapLocation[spawnable];
         int ind = 0;
-        for(int i = 0; i < sz; ++i) {
-            MapLocation loc = locs[i].getMapLocation();
-            if(locs[i].isPassable()
+        for (MapInfo mapInfo : locs) {
+            MapLocation loc = mapInfo.getMapLocation();
+            if (mapInfo.isPassable()
                     && !rc.isLocationOccupied(loc)) {
                 spawnableLocs[ind++] = loc;
             }

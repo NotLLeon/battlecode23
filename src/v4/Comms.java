@@ -33,12 +33,7 @@ public class Comms {
        return encodeLoc(rc, loc);
     }
 
-    public static MapLocation decodeHQLoc(RobotController rc, int encodedLoc) {
-        encodedLoc -= 1;
-        int x = encodedLoc % rc.getMapWidth();
-        int y = encodedLoc / rc.getMapWidth();
-        return new MapLocation(x, y);
-    }
+    public static MapLocation decodeHQLoc(RobotController rc, int encodedLoc) { return decodeLoc(rc, encodedLoc); }
 
     public static MapLocation[] getHQs(RobotController rc) throws GameActionException {
         int numHqs = getNumHQs(rc);
@@ -52,7 +47,7 @@ public class Comms {
     public static void writeHQ(RobotController rc, MapLocation loc) throws GameActionException {
         int numHQs = getNumHQs(rc);
         rc.writeSharedArray(numHQs, encodeHQLoc(rc, loc));
-        rc.writeSharedArray(Constants.IDX_NUM_HQS, rc.readSharedArray(Constants.IDX_NUM_HQS) + 1);
+        rc.writeSharedArray(Constants.IDX_NUM_HQS, numHQs + 1);
         //wellsStartIdx++;
     }
 
@@ -62,8 +57,7 @@ public class Comms {
     //
     // *****************************************************************************************************************
 
-    static int wellsStartIdx = Constants.MAX_HQS_STORED;
-    static int islandsStartIdx = wellsStartIdx + Constants.MAX_WELLS_STORED;
+    private static final int wellsStartIdx = Constants.MAX_HQS_STORED;
 
     public static int getNumAdWells(RobotController rc) throws GameActionException{
         return rc.readSharedArray(Constants.IDX_NUM_AD_WELLS);
@@ -125,6 +119,8 @@ public class Comms {
     // ISLANDS
     //
     // *****************************************************************************************************************
+
+    private static final int islandsStartIdx = wellsStartIdx + Constants.MAX_WELLS_STORED;
 
     public static int getNumIslands(RobotController rc) throws GameActionException{
         return rc.readSharedArray(Constants.IDX_NUM_ISLANDS);

@@ -19,12 +19,15 @@ public class Launcher extends Robot {
         if(tryToShoot(rc)) return;
         if(!onTarget){
             if(delayRush && rc.getRoundNum() < 250) {
-                Direction randomDir = Random.nextDir();
-                for(int i = 0; i < 8; ++i) {
-                    MapLocation nextLoc = curLoc.add(randomDir);
-                    if(rc.canMove(randomDir) && nextLoc.isWithinDistanceSquared(originHq, 16)) {
-                        rc.move(randomDir);
-                        break;
+                if(!curLoc.isWithinDistanceSquared(originHq, 16)) moveTo(rc, originHq);
+                else {
+                    Direction randomDir = Random.nextDir();
+                    for (int i = 0; i < 8; ++i) {
+                        MapLocation nextLoc = curLoc.add(randomDir);
+                        if (rc.canMove(randomDir) && nextLoc.isWithinDistanceSquared(originHq, 16)) {
+                            rc.move(randomDir);
+                            break;
+                        }
                     }
                 }
             } else {
