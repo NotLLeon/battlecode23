@@ -1,4 +1,4 @@
-package v3CappedArc;
+package v3_launchers;
 
 import battlecode.common.*;
 
@@ -31,20 +31,20 @@ public class Launcher extends Robot{
             }
         }
         rc.setIndicatorString("Target:" + targetHq);
-        // Move if possible
-        moveTo(rc, targetHq);
 
         // Attack if possible
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
         int lowestHealth = 100;
         int smallestDistance = 100;
         RobotInfo target = null;
 
+        RobotInfo[] enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
+
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.HEADQUARTERS) continue;
             int enemyHealth = enemy.getHealth();
+            if (enemy.type == RobotType.LAUNCHER) {
+                enemyHealth -= 200;
+            }
             int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
             if (enemyHealth < lowestHealth) {
                 target = enemy;
@@ -61,5 +61,37 @@ public class Launcher extends Robot{
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
         }
+        // Move if possible
+        if (enemies.length == 0) {
+            moveTo(rc, targetHq);
+        }
+
+        // // Attack if possible
+        // int lowestHealth = 100;
+        // int smallestDistance = 100;
+        // RobotInfo target = null;
+
+        // for (RobotInfo enemy : enemies) {
+        //     if(enemy.getType() == RobotType.HEADQUARTERS) continue;
+        //     int enemyHealth = enemy.getHealth();
+        //     if (enemy.type == RobotType.LAUNCHER) {
+        //         enemyHealth -= 200;
+        //     }
+        //     int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
+        //     if (enemyHealth < lowestHealth) {
+        //         target = enemy;
+        //         lowestHealth = enemyHealth;
+        //         smallestDistance = enemyDistance;
+        //     } else if (enemyHealth == lowestHealth) {
+        //         if (enemyDistance < smallestDistance) {
+        //             target = enemy;
+        //             smallestDistance = enemyDistance;
+        //         }
+        //     }
+        // }
+        // if (target != null){
+        //     if (rc.canAttack(target.getLocation()))
+        //         rc.attack(target.getLocation());
+        // }
     }
 }
