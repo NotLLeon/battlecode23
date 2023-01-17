@@ -92,6 +92,17 @@ public class Comms {
         return decodeLoc(rc, encodedLoc);
     }
 
+
+    public static void writeWellLoc(RobotController rc, WellInfo well) throws GameActionException {
+        writeWellLoc(rc, Comms.encodeWellLoc(rc, well.getMapLocation()), well.getResourceType());
+    }
+
+    public static void writeWellLocs(RobotController rc, HashSet<Integer> locs, ResourceType type) throws GameActionException {
+        for (int i : locs) {
+            writeWellLoc(rc, i, type);
+        }
+    }
+
     //Keep separate in case we use the first base 10 digit to represent a blacklist.
     public static void writeWellLoc(RobotController rc, int loc, ResourceType type) throws GameActionException {
         int offset = (type == ResourceType.ADAMANTIUM) ? 0 : Constants.MAX_AD_WELLS_STORED;
@@ -106,12 +117,6 @@ public class Comms {
                 rc.writeSharedArray(num_index, num_wells);
                 break;
             }
-        }
-    }
-
-    public static void writeWellLocs(RobotController rc, HashSet<Integer> locs, ResourceType type) throws GameActionException {
-        for (int i : locs) {
-            writeWellLoc(rc, i, type);
         }
     }
 

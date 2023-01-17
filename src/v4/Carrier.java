@@ -11,7 +11,12 @@ public class Carrier extends Robot {
         COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL, ANCHORING, ISLAND_SEARCH
     }
 
-    private static final ResourceType [] resourceTypes = {ResourceType.ADAMANTIUM, ResourceType.MANA, ResourceType.ELIXIR};
+    private static final ResourceType [] resourceTypes = {
+            ResourceType.ADAMANTIUM,
+            ResourceType.MANA,
+            ResourceType.ELIXIR
+    };
+
     private static HashSet<Integer> ad_well_locs = new HashSet<Integer>();
     private static HashSet<Integer> mn_well_locs = new HashSet<Integer>();
     private static HashSet<Integer> ex_well_locs = new HashSet<Integer>();
@@ -84,7 +89,7 @@ public class Carrier extends Robot {
         }
 
         switch (state) {
-            case EXPLORING:     runCarrierExplore(rc); break;
+            case EXPLORING:     runCarrierExploring(rc); break;
             case MOVE_TO_WELL:  runCarrierMoveToWell(rc); break;
             case RETURNING:     runCarrierReturning(rc); break;
             case COLLECTING:    runCarrierCollecting(rc); break;
@@ -93,8 +98,8 @@ public class Carrier extends Robot {
         }
     }
 
-    private static void runCarrierExplore(RobotController rc) throws GameActionException {
-        // FIXME: rewrite
+    private static void runCarrierExploring(RobotController rc) throws GameActionException {
+        // TODO: rewrite
         rc.setIndicatorString("EXPLORING");
 
                 /*int[] island_ids = rc.senseNearbyIslands();

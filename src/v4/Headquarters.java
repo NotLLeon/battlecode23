@@ -20,9 +20,7 @@ public class Headquarters extends Robot {
             hqCount = rc.getRobotCount();
 
             WellInfo[] wells = rc.senseNearbyWells();
-            for (WellInfo well : wells) {
-                Comms.writeWellLoc(rc, Comms.encodeWellLoc(rc, well.getMapLocation()), well.getResourceType());
-            }
+            for (WellInfo well : wells) Comms.writeWellLoc(rc, well);
         }
 
         MapLocation spawnLoc = getBuildLoc(rc);
@@ -49,6 +47,7 @@ public class Headquarters extends Robot {
 //            }
 //        }
 
+        // TODO: rewrite
         if (currRobotCount > 20*hqCount
                 && turnCount >= 1000
                 && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLoc)
