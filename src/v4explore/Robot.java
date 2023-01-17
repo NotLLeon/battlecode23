@@ -90,7 +90,7 @@ public abstract class Robot {
         }
         return new MapLocation(x / len, y / len);
     }
-
+    
     /**
      * Returns true if not sure and false if definitely not reachable
      */
@@ -117,6 +117,7 @@ public abstract class Robot {
         int totalWeight = 0;
         for (int w : weights) totalWeight += w;
         dir = Random.nextDirWeighted(weights, totalWeight);
+        
         for(int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
             if (rc.canMove(dir)) {
                 break;
@@ -154,7 +155,9 @@ public abstract class Robot {
             }
 
         } else {
+        
             Direction dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+            
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
                 if (rc.canMove(dir)) {
                     if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {

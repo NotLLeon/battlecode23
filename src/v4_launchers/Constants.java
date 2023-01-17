@@ -1,15 +1,10 @@
-package v4explore;
+package v4_launchers;
 
 public class Constants {
     // weights for explore
+    static int TOTAL_WEIGHT_DIRECTIONS = 13;
     static int HIGH_WEIGHT_DIRECTION = 6;
     static int MID_WEIGHT_DIRECTION = 2;
-
-
-    // limits for explore
-    static int NUM_TRACKED_LOCATIONS = 5;
-
-    static int MOVES_TO_TRACK_LOCATION = 5;
 
     // stop sampling direction
     static int MAX_DIRECTION_SEARCH_ATTEMPTS = 32;
@@ -26,5 +21,4 @@ public class Constants {
     static int MAX_MANA_WELLS_STORED = 10;
     static int MAX_HQS_STORED=4;
     static int MAX_ISLANDS_STORED=20;
-
 }

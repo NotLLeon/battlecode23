@@ -1,4 +1,4 @@
-package v4explore;
+package v4_launchers;
 
 import battlecode.common.*;
 
@@ -26,7 +26,7 @@ public class Carrier extends Robot {
     private static int island_objective_id = 0;
     private static int attempts = 0;
 
-    private static void decide_role(RobotController rc) throws GameActionException {
+    private static void decide_role(RobotController rc, int turnCount) throws GameActionException {
         //int num_wells = Comms.getNumWells(rc);
 
         int num_mana_wells = Comms.getNumManaWells(rc);
@@ -34,10 +34,10 @@ public class Carrier extends Robot {
 
         int random_choice = Random.nextInt(num_mana_wells + num_ad_wells+1);
 
-        if (random_choice != 0) {
+        if (random_choice != 0 || turnCount < 30) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
                 //Set to 4 to be impossible (temp).
-                if (Random.nextInt(2) == 1) {
+                if (Random.nextInt(5) == 1) {
                     //Adamantium
                     int random_index = Random.nextInt(num_ad_wells);
                     current_objective = Comms.getAdWell(rc, random_index);
@@ -75,8 +75,7 @@ public class Carrier extends Robot {
     static void runCarrier(RobotController rc, int turnCount) throws GameActionException {
 
         //Decide Initial Role, will anchor on returning.
-
-        if (turnCount == 1) decide_role(rc);
+        if (turnCount == 1) decide_role(rc, turnCount);
 
         //Check for nearby launchers
         RobotInfo[] robotInfo = rc.senseNearbyRobots();
@@ -92,7 +91,7 @@ public class Carrier extends Robot {
         switch (state) {
             case EXPLORING:     runCarrierExploring(rc); break;
             case MOVE_TO_WELL:  runCarrierMoveToWell(rc); break;
-            case RETURNING:     runCarrierReturning(rc); break;
+            case RETURNING:     runCarrierReturning(rc, turnCount); break;
             case COLLECTING:    runCarrierCollecting(rc); break;
             case ISLAND_SEARCH: runCarrierIslandSearch(rc); break;
             case ANCHORING:     runCarrierAnchoring(rc); break;
@@ -122,7 +121,10 @@ public class Carrier extends Robot {
             current_objective = well_one.getMapLocation();
             state = CARRIER_STATE.MOVE_TO_WELL;
         } else {
-            exploreNewArea(rc);
+            Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
+            if (rc.canMove(dir)) {
+                rc.move(dir);
+            }
         }
     }
 
@@ -135,7 +137,7 @@ public class Carrier extends Robot {
         }
     }
 
-    private static void runCarrierReturning(RobotController rc) throws GameActionException {
+    private static void runCarrierReturning(RobotController rc, int turnCount) throws GameActionException {
         rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
 
         if (rc.getLocation().isAdjacentTo(current_objective)) {
@@ -188,7 +190,7 @@ public class Carrier extends Robot {
                     return;
                 }
             }
-            decide_role(rc);
+            decide_role(rc, turnCount);
         } else {
             current_objective = getClosestHQ(rc);
             moveTo(rc, current_objective);
@@ -241,7 +243,10 @@ public class Carrier extends Robot {
                     state = CARRIER_STATE.RETURNING;
                 }
             } else {
-                exploreNewArea(rc);
+                Direction dir = Explore.exploreAwayFromHQ(rc, getClosestHQ(rc));
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }
             }
         } else {
             current_objective = getClosestHQ(rc);
