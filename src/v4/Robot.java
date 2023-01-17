@@ -28,16 +28,6 @@ public abstract class Robot {
                 || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
         Direction dir = BugNav.getDir(rc, dest);
-//        rc.setIndicatorString(""+dir);
-//        Direction best = curLoc.directionTo(dest);
-//        if(rc.canMove(best)) {
-//            BugNav.reset();
-//            rc.move(best);
-//            return;
-//        }
-
-//        if(!BFS.moveTo(rc, dest) && !BugNav.moveTo(rc, dest)) {
-//        Direction bugNavDir = BugNav.getDir(rc, dest);
         if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
             BugNav.reset();
             Direction [] dirs = {
@@ -64,23 +54,23 @@ public abstract class Robot {
     }
 
     static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
-        MapLocation current_location = rc.getLocation();
-        int t = 0;
-        int min_loc = 0;
+        MapLocation curLoc = rc.getLocation();
+        MapLocation[] hqs = Comms.getHQs(rc);
         int min_dist = 10000;
-        for (int i = 0; i < 8 && (t = rc.readSharedArray(i)) != 0; i++) {
-            int x = (t-1)%rc.getMapWidth();
-            int y = (t-1)/rc.getMapWidth();
-            int cur_dist = (x-current_location.x) * (x-current_location.x) + (y-current_location.y)*(y-current_location.y);
-            if (cur_dist < min_dist) {
-                min_dist = cur_dist;
-                min_loc = (t-1);
+        MapLocation closestHq = null;
+        for(MapLocation hq: hqs) {
+            int dis = curLoc.distanceSquaredTo(hq);
+            if(dis < min_dist) {
+                min_dist = dis;
+                closestHq = hq;
             }
         }
-        return new MapLocation(min_loc%rc.getMapWidth(), min_loc/rc.getMapWidth());
+        return closestHq;
     }
 
-    // true - not sure, false - no
+    /**
+     * Returns true if not sure and false if definitely not reachable
+     */
     static boolean isReachable(RobotController rc, MapLocation dest) {
         return BugNav.isReachable(dest);
     }

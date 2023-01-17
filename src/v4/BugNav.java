@@ -10,8 +10,7 @@ public class BugNav {
     private static double slope = 0;
     private static Direction traceDir = null;
     private static MapLocation collisionLoc = null;
-
-    static boolean isReachable = true;
+    private static boolean isReachable = true;
 
     public static void reset() {
         curDest = null;
@@ -30,9 +29,9 @@ public class BugNav {
 
     private static boolean onLine(MapLocation loc) {
         double delta = lineEval(loc.x) - loc.y;
-//        if(infSlope) return delta == 0;
-//        return delta*delta <= slope*slope;
-        return delta*delta <= 4;
+        if(infSlope) return delta == 0;
+        return delta*delta <= 1.5*slope*slope;
+//        return delta*delta <= 4;
 
     }
 
@@ -47,7 +46,11 @@ public class BugNav {
 
     private static boolean isPassable(RobotController rc, Direction dir) throws GameActionException {
         MapLocation loc = rc.getLocation().add(dir);
-        return rc.onTheMap(loc) && rc.senseMapInfo(loc).isPassable();
+        if(!rc.onTheMap(loc)) return false;
+        MapInfo locInfo = rc.senseMapInfo(loc);
+        Direction currentDir = locInfo.getCurrentDirection();
+        boolean goodCurrent = currentDir == Direction.CENTER;
+        return locInfo.isPassable() && goodCurrent;
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
@@ -59,11 +62,12 @@ public class BugNav {
         MapLocation curLoc = rc.getLocation();
         Direction dir = curLoc.directionTo(dest);
 
-//        if(obstacle) rc.setIndicatorString(
-//                "curLoc: " + curLoc
-//                        + "dest: "+ dest
+        if(obstacle) rc.setIndicatorString(
+                "curLoc: " + curLoc
+                        + "dest: "+ dest
 //                        + "collisionLoc: " + collisionLoc
-//                        + "lineDiff: " + (lineEval(curLoc.x) - curLoc.y));
+                        + "lineDiff: " + (int)(((lineEval(curLoc.x) - curLoc.y)*100))/100.0
+                        + "slope: " + slope);
 
         Direction nextDir = null;
         if(!obstacle) {
