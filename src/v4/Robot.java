@@ -28,16 +28,6 @@ public abstract class Robot {
                 || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
         Direction dir = BugNav.getDir(rc, dest);
-//        rc.setIndicatorString(""+dir);
-//        Direction best = curLoc.directionTo(dest);
-//        if(rc.canMove(best)) {
-//            BugNav.reset();
-//            rc.move(best);
-//            return;
-//        }
-
-//        if(!BFS.moveTo(rc, dest) && !BugNav.moveTo(rc, dest)) {
-//        Direction bugNavDir = BugNav.getDir(rc, dest);
         if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
             BugNav.reset();
             Direction [] dirs = {

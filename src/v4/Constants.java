@@ -21,6 +21,4 @@ public class Constants {
     static int MAX_MANA_WELLS_STORED = 10;
     static int MAX_HQS_STORED=4;
     static int MAX_ISLANDS_STORED=20;
-    static int NUM_WELLS_STORED=0;
-    static int NUM_ISLANDS_STORED=0;
 }

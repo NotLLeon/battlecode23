@@ -10,8 +10,7 @@ public class BugNav {
     private static double slope = 0;
     private static Direction traceDir = null;
     private static MapLocation collisionLoc = null;
-
-    static boolean isReachable = true;
+    private static boolean isReachable = true;
 
     public static void reset() {
         curDest = null;
