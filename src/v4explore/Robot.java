@@ -57,20 +57,23 @@ public abstract class Robot {
 
 
     }
-
-    static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
+    static MapLocation findClosestLoc (RobotController rc, MapLocation [] locs) {
         MapLocation curLoc = rc.getLocation();
-        MapLocation[] hqs = Comms.getHQs(rc);
-        int min_dist = 10000;
-        MapLocation closestHq = null;
-        for(MapLocation hq: hqs) {
-            int dis = curLoc.distanceSquaredTo(hq);
-            if(dis < min_dist) {
-                min_dist = dis;
-                closestHq = hq;
+        int minDist = 10000;
+        MapLocation closest = new MapLocation(0, 0);
+        for (MapLocation loc : locs) {
+            if (loc == null) continue;
+            int newDist = curLoc.distanceSquaredTo(loc);
+            if (newDist < minDist) {
+                minDist = newDist;
+                closest = loc;
             }
         }
-        return closestHq;
+        return closest;
+    }
+
+    static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
+        return findClosestLoc(rc, Comms.getHQs(rc));
     }
 
     /**
@@ -106,38 +109,25 @@ public abstract class Robot {
         return dir;
     }
 
-    static MapLocation findClosestLoc (RobotController rc, MapLocation [] locs) {
-        MapLocation curLoc = rc.getLocation();
-        int minDist = 10000;
-        MapLocation closest = new MapLocation(0, 0);
-        for (MapLocation loc : locs) {
-            if (loc == null) continue;
-            int newDist = curLoc.distanceSquaredTo(loc);
-            if (newDist < minDist) {
-                minDist = newDist;
-                closest = loc;
-            }
-        }
-        return closest;
-    }
-
     public static void exploreNewArea(RobotController rc) throws GameActionException {
         if (!rc.isMovementReady()) return;
 
         if (prevLocs[0] == null) {
             Direction dir = Random.nextDir();
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
-                if (!rc.canMove(dir)) {
-                    dir = Random.nextDir();
+                if (rc.canMove(dir)) {
+                    if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
+                        prevLocs[prevlocIdx] = rc.getLocation();
+                        prevlocIdx++;
+                    }
+                    rc.move(dir);
+                    break;
                 }
+                dir = Random.nextDir();
             }
-            if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
-                prevLocs[prevlocIdx] = rc.getLocation();
-                prevlocIdx++;
-            }
-            rc.move(dir);
+
         } else {
-            Direction dir = exploreAwayFromLoc(rc, prevLocs[0]);
+            Direction dir = exploreAwayFromLoc(rc, findClosestLoc(rc, prevLocs));
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
                 if (rc.canMove(dir)) {
                     if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
@@ -147,10 +137,8 @@ public abstract class Robot {
                     rc.move(dir);
                     break;
                 }
-                dir = exploreAwayFromLoc(rc, prevLocs[0]);
+                dir = exploreAwayFromLoc(rc, findClosestLoc(rc, prevLocs));
             }
         }
     }
-}
-
 }
