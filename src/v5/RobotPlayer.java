@@ -1,8 +1,6 @@
 package v5;
 
-import battlecode.common.Clock;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -27,7 +25,7 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
-
+        Random.initRandom(rc.getID());
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match
 
