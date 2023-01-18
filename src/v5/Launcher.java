@@ -92,15 +92,15 @@ public class Launcher extends Robot {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        int lowestHealth = 100;
+        int lowestHealth = 1000;
         int smallestDistance = 100;
         RobotInfo target = null;
 
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.HEADQUARTERS) continue;
             int enemyHealth = enemy.getHealth();
-            if (enemy.type == RobotType.LAUNCHER) {
-                enemyHealth -= 200;
+            if (enemy.getType() == RobotType.LAUNCHER) {
+                enemyHealth -= 2000;
             }
             int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
             if (enemyHealth < lowestHealth) {

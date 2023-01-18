@@ -81,32 +81,25 @@ public class Carrier extends Robot {
         //Check for nearby launchers
         RobotInfo[] robotInfo = rc.senseNearbyRobots();
 
-        for (int i = 0; i < robotInfo.length; i++) {
-            if (robotInfo[i].getTeam() != rc.getTeam()
-                    && robotInfo[i].type == RobotType.LAUNCHER
-                    && rc.canAttack(robotInfo[i].getLocation())) {
-                rc.attack(robotInfo[i].getLocation());
-            } else if (robotInfo[i].type == RobotType.LAUNCHER) {
-                Direction dir = rc.getLocation().directionTo(robotInfo[i].getLocation()).opposite();
+        for (RobotInfo robot : robotInfo) {
+            if (robot.getTeam() != rc.getTeam() && robot.getType() == RobotType.LAUNCHER) {
+                MapLocation enemyLoc = robot.getLocation();
+
+                Direction dir = rc.getLocation().directionTo(robot.getLocation()).opposite();
                 Direction dir_left = dir.rotateLeft();
                 Direction dir_right = dir.rotateRight();
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                } else if (rc.canMove(dir_left)) {
-                    rc.move(dir_left);
-                } else if (rc.canMove(dir_right)) {
-                    rc.move(dir_right);
-                } else {
+                if (rc.canMove(dir)) rc.move(dir);
+                else if (rc.canMove(dir_left)) rc.move(dir_left);
+                else if (rc.canMove(dir_right))rc.move(dir_right);
+                else {
                     Direction dir_to = dir.opposite();
                     Direction dir_to_left = dir_to.rotateLeft();
                     Direction dir_to_right = dir_to.rotateRight();
-                    if (rc.canMove(dir_to)) {
-                        rc.move(dir_to);
-                    } else if (rc.canMove(dir_to_left)) {
-                        rc.move(dir_to_left);
-                    } else if (rc.canMove(dir_to_right)) {
-                        rc.move(dir_to_right);
-                    }
+                    if (rc.canMove(dir_to)) rc.move(dir_to);
+                    else if (rc.canMove(dir_to_left)) rc.move(dir_to_left);
+                    else if (rc.canMove(dir_to_right)) rc.move(dir_to_right);
+
+                    if(rc.canAttack(robot.getLocation())) rc.attack(enemyLoc);
                 }
             }
         }
