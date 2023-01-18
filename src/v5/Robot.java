@@ -34,7 +34,7 @@ public abstract class Robot {
 
         Direction dir = BugNav.getDir(rc, dest);
         if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
-            BugNav.reset();
+//            BugNav.reset();
             Direction [] dirs = {
                     dir.rotateLeft(),
                     dir.rotateRight(),

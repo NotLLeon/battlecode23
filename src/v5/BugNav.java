@@ -11,9 +11,11 @@ public class BugNav {
     private static Direction traceDir = null;
     private static MapLocation collisionLoc = null;
     private static boolean isReachable = true;
+    private static MapLocation assumedLoc = null;
 
     public static void reset() {
         curDest = null;
+        assumedLoc = null;
         obstacle = false;
         isReachable = true;
     }
@@ -61,11 +63,14 @@ public class BugNav {
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         // Bug2
-        if(dest != curDest) {
+
+        MapLocation curLoc = rc.getLocation();
+        if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
+//            if(curLoc != assumedLoc) rc.setIndicatorString("curLoc: " + curLoc + ", assumedLoc: " + assumedLoc);
             reset();
             curDest = dest;
+            assumedLoc = curLoc;
         }
-        MapLocation curLoc = rc.getLocation();
         Direction dir = curLoc.directionTo(dest);
 
 //        if(obstacle) {
@@ -81,6 +86,7 @@ public class BugNav {
         if(!obstacle) {
             if (isPassable(rc, dir)) {
 //                rc.setIndicatorString("move: " + dir);
+                assumedLoc = curLoc.add(dir);
                 return dir;
             }
 
@@ -100,7 +106,8 @@ public class BugNav {
                 return getDir(rc, dest);
             }
 
-            if(curLoc == collisionLoc) {
+            if(curLoc.equals(collisionLoc)) {
+                reset();
                 isReachable = false;
                 return Direction.CENTER;
             }
@@ -110,6 +117,7 @@ public class BugNav {
             if(isPassable(rc, nextDir)) {
                 traceDir = nextDir;
 //                rc.setIndicatorString(""+traceDir);
+                assumedLoc = curLoc.add(traceDir);
                 return traceDir;
             } else {
                 nextDir = nextDir.rotateLeft();
