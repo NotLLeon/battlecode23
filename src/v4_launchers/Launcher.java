@@ -22,15 +22,14 @@ public class Launcher extends Robot {
         if(turnCount == 1) {
             generateTargets(rc);
 
-            MapLocation spawn_hq = targets[3];
+            MapLocation spawn_hq = originHq;
             int x = spawn_hq.x;
             int y = spawn_hq.y;
-            double centerx = rc.getMapWidth() / 2;
-            double centery = rc.getMapHeight() / 2;
-            if (Math.abs(centerx - x) < rc.getMapWidth() / 6) {
+            double centerx = rc.getMapWidth() / 2.0;
+            double centery = rc.getMapHeight() / 2.0;
+            if (Math.abs(centerx - x) < rc.getMapWidth() / 6.0) {
                 meet = new MapLocation(x, y + 5 * (((centery-y) < 0) ? -1 : 1));
-            }
-            else if (Math.abs(centery - y) < rc.getMapWidth() / 6) {
+            } else if (Math.abs(centery - y) < rc.getMapWidth() / 6.0) {
                 meet = new MapLocation(x + 5 * (((centerx-x) < 0) ? -1 : 1), y);
             } else {
                 meet = new MapLocation(x + 4 * (((centerx-x) < 0) ? -1 : 1), y + 4 * (((centery-y) < 0) ? -1 : 1));
@@ -40,37 +39,39 @@ public class Launcher extends Robot {
         MapLocation curLoc = rc.getLocation();
         MapLocation shot = tryToShoot(rc);
         if(shot != null) {
-            moveTo(rc, new MapLocation(curLoc.x + (curLoc.x - shot.x), curLoc.y + (curLoc.y - shot.y)));
+            Direction moveBack = curLoc.directionTo(shot).opposite();
+            if(rc.canMove(moveBack)) rc.move(moveBack);
             onTarget = false;
         }
+
         switch (state) {
             case GOTO_LOCATION:
-            rc.setIndicatorString("GOTO_LOCATION");
-            moveToRadius(rc, meet, 2);
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots(10, rc.getTeam());
-            int numLaunchers = 0;
-            for (RobotInfo rob : nearbyRobots) {
-                if (rob.getType() == RobotType.LAUNCHER) { numLaunchers++; }
-            }
-            if (numLaunchers > 3) { state = LAUNCHER_STATE.PATROL; }
-            break;
+                rc.setIndicatorString("GOTO_LOCATION");
+                moveToRadius(rc, meet, 2);
+                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(10, rc.getTeam());
+                int numLaunchers = 0;
+                for (RobotInfo rob : nearbyRobots) {
+                    if (rob.getType() == RobotType.LAUNCHER) numLaunchers++;
+                }
+                if (numLaunchers > 3) state = LAUNCHER_STATE.PATROL;
+                break;
             case PATROL:
             default:
-            rc.setIndicatorString("PATROL: " + targets[targetInd]);
-            if(!onTarget){
-                MapLocation curTarget = targets[targetInd];
-                moveToRadius(rc, curTarget, 4);
-                if(curLoc.isWithinDistanceSquared(curTarget, 4)) {
-                    if(!canSeeHq(rc)) nextTarget();
-                    else onTarget = true;
-                } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
-                    roundsNearTarget++;
+                rc.setIndicatorString("PATROL: " + targets[targetInd]);
+                if(!onTarget){
+                    MapLocation curTarget = targets[targetInd];
+                    moveToRadius(rc, curTarget, 4);
+                    if(curLoc.isWithinDistanceSquared(curTarget, 4)) {
+                        if(!canSeeHq(rc)) nextTarget();
+                        else onTarget = true;
+                    } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
+                        roundsNearTarget++;
+                    }
+                    if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
+                        nextTarget();
+                    }
                 }
-                if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
-                    nextTarget();
-                }
-            }
-            break;
+                break;
         }
         tryToShoot(rc);
     }
