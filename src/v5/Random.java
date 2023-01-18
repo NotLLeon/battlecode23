@@ -4,7 +4,7 @@ import battlecode.common.Direction;
 
 public class Random {
 
-    static java.util.Random rng = new java.util.Random(6147);
+    static java.util.Random rng = null;
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -17,8 +17,9 @@ public class Random {
             Direction.NORTHWEST,
     };
 
-    static void set_seed(int seed) {
+    static void initRandom(int seed) {
         rng = new java.util.Random(seed);
+
     }
 
     static int getDirectionOrderNum(Direction dir) {
