@@ -25,6 +25,8 @@ public class Carrier extends Robot {
     private static MapLocation current_objective = new MapLocation(0, 0);
     private static int island_objective_id = 0;
     private static int attempts = 0;
+    private static int patience = 0;
+    private static int patience_limit = 150;
 
     private static void decide_role(RobotController rc) throws GameActionException {
         int num_mana_wells = Comms.getNumManaWells(rc);
@@ -147,6 +149,14 @@ public class Carrier extends Robot {
         } else {
             exploreNewArea(rc);
         }*/
+
+        patience++;
+
+        if (patience >= patience_limit) {
+            current_objective = getClosestHQ(rc);
+            state = CARRIER_STATE.RETURNING;
+            patience = 0;
+        }
     }
 
     private static void runCarrierMoveToWell(RobotController rc) throws GameActionException {
@@ -155,6 +165,13 @@ public class Carrier extends Robot {
             state = CARRIER_STATE.COLLECTING;
         } else {
             moveTo(rc, current_objective);
+        }
+
+        patience += (rc.getLocation().distanceSquaredTo(current_objective) > 4) ? 1 : 0;
+
+        if (patience >= patience_limit) {
+            patience = 0;
+            decide_role(rc);
         }
     }
 
