@@ -75,6 +75,7 @@ public class Carrier extends Robot {
     static void runCarrier(RobotController rc, int turnCount) throws GameActionException {
 
         //Decide Initial Role, will anchor on returning.
+
         if (turnCount == 1) decide_role(rc);
 
         //Check for nearby launchers

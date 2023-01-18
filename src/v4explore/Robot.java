@@ -76,6 +76,21 @@ public abstract class Robot {
         return findClosestLoc(rc, Comms.getHQs(rc));
     }
 
+    static MapLocation getAvgLocation(MapLocation [] locs) {
+        int len = locs.length;
+        int x = 0;
+        int y = 0;
+        for (MapLocation loc : locs) {
+            if (loc == null) {
+                len--;
+                continue;
+            }
+            x += loc.x;
+            y += loc.y;
+        }
+        return new MapLocation(x / len, y / len);
+    }
+    
     /**
      * Returns true if not sure and false if definitely not reachable
      */
@@ -93,24 +108,37 @@ public abstract class Robot {
         if (locDir != Direction.CENTER) {
             // Directions pointing towards loc lowest weight
             // Directions away from loc higher weight
-            weights[Random.getDirectionOrderNum(locDir.opposite().rotateLeft())] *= Constants.MID_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.opposite().rotateRight())] *= Constants.MID_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.opposite())] *= Constants.MID_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.rotateLeft().rotateLeft())] *= Constants.MID_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.rotateRight().rotateRight())] *= Constants.MID_WEIGHT_DIRECTION;
+            weights[Random.getDirectionOrderNum(locDir.opposite().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[Random.getDirectionOrderNum(locDir.opposite().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[Random.getDirectionOrderNum(locDir.opposite())] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[Random.getDirectionOrderNum(locDir.rotateLeft().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[Random.getDirectionOrderNum(locDir.rotateRight().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
         }
-        dir = Random.nextDirWeighted(weights, Constants.TOTAL_WEIGHT_DIRECTIONS);
+        int totalWeight = 0;
+        for (int w : weights) totalWeight += w;
+        dir = Random.nextDirWeighted(weights, totalWeight);
+        
         for(int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
             if (rc.canMove(dir)) {
                 break;
             }
-            dir = Random.nextDirWeighted(weights, Constants.TOTAL_WEIGHT_DIRECTIONS);
+            dir = Random.nextDirWeighted(weights, totalWeight);
         }
         return dir;
     }
 
     public static void exploreNewArea(RobotController rc) throws GameActionException {
         if (!rc.isMovementReady()) return;
+
+        int numClosePrevLocs = 0;
+        for (MapLocation loc : prevLocs) {
+            if (loc != null && rc.canSenseLocation(loc)) numClosePrevLocs++;
+        }
+
+        if (numClosePrevLocs == Constants.NUM_TRACKED_LOCATIONS) {
+            rc.setIndicatorString("TRAPPED");
+            numMoves = 0;
+        }
 
         if (prevLocs[0] == null) {
             Direction dir = Random.nextDir();
@@ -127,7 +155,9 @@ public abstract class Robot {
             }
 
         } else {
-            Direction dir = exploreAwayFromLoc(rc, findClosestLoc(rc, prevLocs));
+        
+            Direction dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+            
             for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
                 if (rc.canMove(dir)) {
                     if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
@@ -137,7 +167,7 @@ public abstract class Robot {
                     rc.move(dir);
                     break;
                 }
-                dir = exploreAwayFromLoc(rc, findClosestLoc(rc, prevLocs));
+                dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
             }
         }
     }
