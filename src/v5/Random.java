@@ -3,7 +3,7 @@ package v5;
 import battlecode.common.Direction;
 
 public class Random {
-    
+
     static java.util.Random rng = new java.util.Random(6147);
 
     static final Direction[] directions = {
@@ -16,6 +16,10 @@ public class Random {
             Direction.WEST,
             Direction.NORTHWEST,
     };
+
+    static void set_seed(int seed) {
+        rng = new java.util.Random(seed);
+    }
 
     static int getDirectionOrderNum(Direction dir) {
         for (int i = 0; i < 8; ++i) {
@@ -44,7 +48,7 @@ public class Random {
     }
 
     static boolean nextBoolean() {
-         return rng.nextBoolean();
+        return rng.nextBoolean();
     }
 
 }

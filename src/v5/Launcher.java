@@ -48,7 +48,7 @@ public class Launcher extends Robot {
 
         switch (state) {
             case GOTO_LOCATION:
-                rc.setIndicatorString("GOTO_LOCATION");
+//                rc.setIndicatorString("GOTO_LOCATION");
                 moveToRadius(rc, meet, 2);
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(10, rc.getTeam());
                 int numLaunchers = 0;
@@ -59,7 +59,7 @@ public class Launcher extends Robot {
                 break;
             case PATROL:
             default:
-                rc.setIndicatorString("PATROL: " + targets[targetInd]);
+//                rc.setIndicatorString("PATROL: " + targets[targetInd]);
                 if(!onTarget){
                     MapLocation curTarget = targets[targetInd];
                     moveToRadius(rc, curTarget, 4);

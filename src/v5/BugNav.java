@@ -50,8 +50,13 @@ public class BugNav {
         if(!rc.onTheMap(loc)) return false;
         MapInfo locInfo = rc.senseMapInfo(loc);
         Direction currentDir = locInfo.getCurrentDirection();
-        boolean goodCurrent = currentDir == Direction.CENTER;
-        return locInfo.isPassable() && goodCurrent;
+        boolean goodCurrent = currentDir == Direction.CENTER
+                || currentDir == dir
+                || currentDir == dir.rotateLeft()
+                || currentDir == dir.rotateRight();
+        RobotInfo hasRobot = rc.senseRobotAtLocation(loc);
+        boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
+        return locInfo.isPassable() && goodCurrent && goodRobot;
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
@@ -75,13 +80,13 @@ public class BugNav {
         Direction nextDir = null;
         if(!obstacle) {
             if (isPassable(rc, dir)) {
-                rc.setIndicatorString("move: " + dir);
+//                rc.setIndicatorString("move: " + dir);
                 return dir;
             }
 
             obstacle = true;
             computeSlope(curLoc, dest);
-            rc.setIndicatorString("found obs at: " + curLoc);
+//            rc.setIndicatorString("found obs at: " + curLoc);
             traceDir = dir;
             dis = curLoc.distanceSquaredTo(dest);
             collisionLoc = curLoc;
@@ -110,7 +115,7 @@ public class BugNav {
                 nextDir = nextDir.rotateLeft();
             }
         }
-        rc.setIndicatorString("cent");
+//        rc.setIndicatorString("cent");
 
         return Direction.CENTER;
     }
