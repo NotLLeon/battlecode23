@@ -75,7 +75,6 @@ public class Carrier extends Robot {
 
         //Decide Initial Role, will anchor on returning.
         if (turnCount == 1) {
-            Random.set_seed(rc.getID());
             decide_role(rc);
         }
 
