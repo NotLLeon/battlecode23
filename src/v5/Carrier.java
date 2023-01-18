@@ -167,10 +167,21 @@ public class Carrier extends Robot {
             moveTo(rc, current_objective);
         }
 
-        patience += (rc.getLocation().distanceSquaredTo(current_objective) > 4) ? 1 : 0;
+       /* patience += (rc.getLocation().distanceSquaredTo(current_objective) > 4) ? 1 : 0;
 
         if (patience >= patience_limit) {
             patience = 0;
+            decide_role(rc);
+        }*/
+
+        RobotInfo[] info = rc.senseNearbyRobots();
+        int num_carriers = 0;
+        for (int i = 0; i < info.length; i++) {
+            num_carriers += (info[i].getTeam() == rc.getTeam()
+                    && info[i].getType() == RobotType.CARRIER
+                    && info[i].getLocation().isWithinDistanceSquared(current_objective, 4)) ? 1 : 0;
+        }
+        if (rc.getLocation().isWithinDistanceSquared(current_objective, rc.getType().visionRadiusSquared) && num_carriers >= 9) {
             decide_role(rc);
         }
     }
