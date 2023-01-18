@@ -9,6 +9,20 @@ import java.util.HashSet;
 
 public class Comms {
 
+    //Get Memory Indices
+
+    public static int getAdWellStartIndex(RobotController rc) throws GameActionException{
+        return getNumHQs(rc);
+    }
+
+    public static int getManaWellStartIndex(RobotController rc) throws GameActionException{
+        return 0;//getNumHQs(rc) + getNumAdW
+    }
+
+    public static int getHQStartIndex(RobotController rc) throws GameActionException{
+        return 0;
+    }
+
     // HQ
 
     static int getNumHQs(RobotController rc) throws GameActionException {
