@@ -12,6 +12,9 @@ public class BugNav {
     private static MapLocation collisionLoc = null;
     private static boolean isReachable = true;
     private static MapLocation assumedLoc = null;
+    private final static int numPastLocs = 15;
+    private static MapLocation[] pastLocs = new MapLocation[numPastLocs];
+    private static int locIndex = 0;
 
     public static void reset() {
         curDest = null;
@@ -58,13 +61,23 @@ public class BugNav {
                 || currentDir == dir.rotateRight();
         RobotInfo hasRobot = rc.senseRobotAtLocation(loc);
         boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
-        return locInfo.isPassable() && goodCurrent && goodRobot;
+//        return locInfo.isPassable() && goodCurrent && goodRobot;
+        return rc.canMove(dir) && goodCurrent;
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         // Bug2
+//        rc.setIndicatorString(""+collisionLoc);
 
         MapLocation curLoc = rc.getLocation();
+
+        // probably stuck in same place
+        for(MapLocation loc : pastLocs) {
+            if(loc != null && loc.equals(curLoc)) reset();
+        }
+        pastLocs[locIndex] = curLoc;
+        locIndex = (locIndex+1) % numPastLocs;
+
         if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
 //            if(curLoc != assumedLoc) rc.setIndicatorString("curLoc: " + curLoc + ", assumedLoc: " + assumedLoc);
             reset();
