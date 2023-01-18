@@ -86,6 +86,28 @@ public class Carrier extends Robot {
                     && robotInfo[i].type == RobotType.LAUNCHER
                     && rc.canAttack(robotInfo[i].getLocation())) {
                 rc.attack(robotInfo[i].getLocation());
+            } else if (robotInfo[i].type == RobotType.LAUNCHER) {
+                Direction dir = rc.getLocation().directionTo(robotInfo[i].getLocation()).opposite();
+                Direction dir_left = dir.rotateLeft();
+                Direction dir_right = dir.rotateRight();
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                } else if (rc.canMove(dir_left)) {
+                    rc.move(dir_left);
+                } else if (rc.canMove(dir_right)) {
+                    rc.move(dir_right);
+                } else {
+                    Direction dir_to = dir.opposite();
+                    Direction dir_to_left = dir_to.rotateLeft();
+                    Direction dir_to_right = dir_to.rotateRight();
+                    if (rc.canMove(dir_to)) {
+                        rc.move(dir_to);
+                    } else if (rc.canMove(dir_to_left)) {
+                        rc.move(dir_to_left);
+                    } else if (rc.canMove(dir_to_right)) {
+                        rc.move(dir_to_right);
+                    }
+                }
             }
         }
 
@@ -167,10 +189,21 @@ public class Carrier extends Robot {
             moveTo(rc, current_objective);
         }
 
-        patience += (rc.getLocation().distanceSquaredTo(current_objective) > 4) ? 1 : 0;
+       /* patience += (rc.getLocation().distanceSquaredTo(current_objective) > 4) ? 1 : 0;
 
         if (patience >= patience_limit) {
             patience = 0;
+            decide_role(rc);
+        }*/
+
+        RobotInfo[] info = rc.senseNearbyRobots();
+        int num_carriers = 0;
+        for (int i = 0; i < info.length; i++) {
+            num_carriers += (info[i].getTeam() == rc.getTeam()
+                    && info[i].getType() == RobotType.CARRIER
+                    && info[i].getLocation().isWithinDistanceSquared(current_objective, 4)) ? 1 : 0;
+        }
+        if (rc.getLocation().isWithinDistanceSquared(current_objective, rc.getType().visionRadiusSquared) && num_carriers >= 9) {
             decide_role(rc);
         }
     }
