@@ -30,7 +30,7 @@ public class Comms {
     }
 
     public static int encodeHQLoc(RobotController rc, MapLocation loc) {
-       return encodeLoc(rc, loc);
+        return encodeLoc(rc, loc);
     }
 
     public static MapLocation decodeHQLoc(RobotController rc, int encodedLoc) { return decodeLoc(rc, encodedLoc); }
@@ -71,11 +71,11 @@ public class Comms {
     }
 
     public static MapLocation getAdWell(RobotController rc, int index) throws GameActionException {
-        return decodeIslandLoc(rc, rc.readSharedArray(wellsStartIdx + index));
+        return decodeIslandLoc(rc, rc.readSharedArray(Constants.MAX_HQS_STORED + index));
     }
 
     public static MapLocation getManaWell(RobotController rc, int index) throws GameActionException {
-        return decodeIslandLoc(rc, rc.readSharedArray(wellsStartIdx + index + Constants.MAX_AD_WELLS_STORED));
+        return decodeIslandLoc(rc, rc.readSharedArray(Constants.MAX_HQS_STORED + index + Constants.MAX_AD_WELLS_STORED));
     }
 
     public static int encodeWellLoc(RobotController rc, MapLocation loc) {
@@ -99,19 +99,46 @@ public class Comms {
 
     //Keep separate in case we use the first base 10 digit to represent a blacklist.
     public static void writeWellLoc(RobotController rc, int loc, ResourceType type) throws GameActionException {
+        // if (type == ResourceType.ADAMANTIUM) {
+        //     return;
+        // }
         int offset = (type == ResourceType.ADAMANTIUM) ? 0 : Constants.MAX_AD_WELLS_STORED;
-        for (int j = wellsStartIdx+offset; j < offset+wellsStartIdx + Constants.MAX_WELLS_STORED; j++) {
+        for (int j = wellsStartIdx+offset; j < offset+wellsStartIdx + Constants.MAX_AD_WELLS_STORED; j++) {
             int val = rc.readSharedArray(j);
             if (val == loc) {
                 break;
             } else if (val == 0) {
                 rc.writeSharedArray(j, loc);
-                int num_index = (offset == 0) ? Constants.IDX_NUM_AD_WELLS : Constants.IDX_NUM_MANA_WELLS;
+                int num_index = (type == ResourceType.ADAMANTIUM) ? Constants.IDX_NUM_AD_WELLS : Constants.IDX_NUM_MANA_WELLS;
                 int num_wells = rc.readSharedArray(num_index)+1;
                 rc.writeSharedArray(num_index, num_wells);
+                MapLocation decoded = decodeWellLoc(rc, loc);
+                // System.out.println("True index: " + j + " (discovered " + ((type==ResourceType.ADAMANTIUM) ? "adamantium) at (" : "mana) at (") + decoded.x + "," + decoded.y + ")");
                 break;
             }
         }
+    }
+
+    public static MapLocation getWell(RobotController rc, int index) throws GameActionException{
+        return decodeWellLoc(rc, rc.readSharedArray(index + wellsStartIdx));
+    }
+
+    public static boolean knowsWell(RobotController rc, MapLocation loc) throws GameActionException {
+        int index = 0;
+        int encoded = encodeWellLoc(rc, loc);
+        for (int i = 0; i < getNumAdWells(rc); i++) {
+            index = Comms.encodeWellLoc(rc,getAdWell(rc, i));
+            if (encoded == index) {
+                return true;
+            }
+        }
+        for (int i = 0; i < getNumManaWells(rc); i++) {
+            index = Comms.encodeWellLoc(rc,getManaWell(rc, i));
+            if (encoded == index) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // *****************************************************************************************************************
@@ -159,7 +186,7 @@ public class Comms {
             if (val == id) {
                 break;
             } else if (val == 0) {
-              //  System.out.println("Storing island location.");
+                //  System.out.println("Storing island location.");
                 rc.writeSharedArray(2*j - islandsStartIdx, id);
                 rc.writeSharedArray(2*j - islandsStartIdx + 1, loc);
                 int num_islands = rc.readSharedArray(Constants.IDX_NUM_ISLANDS)+1;

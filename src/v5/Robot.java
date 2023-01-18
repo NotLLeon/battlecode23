@@ -44,7 +44,7 @@ public abstract class Robot {
                     dir.rotateRight().opposite(),
                     dir.opposite()
             };
-            rc.setIndicatorString("bump");
+//            rc.setIndicatorString("bump");
             for (Direction direction : dirs) {
                 if (rc.canMove(direction)) {
                     rc.move(direction);
@@ -136,7 +136,7 @@ public abstract class Robot {
         }
 
         if (numClosePrevLocs == Constants.NUM_TRACKED_LOCATIONS) {
-            rc.setIndicatorString("TRAPPED");
+//            rc.setIndicatorString("TRAPPED");
             numMoves = 0;
         }
 
@@ -149,6 +149,8 @@ public abstract class Robot {
                         prevlocIdx++;
                     }
                     rc.move(dir);
+                    // for empty carriers
+                    exploreNewArea(rc);
                     break;
                 }
                 dir = Random.nextDir();
@@ -165,6 +167,7 @@ public abstract class Robot {
                         prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
                     }
                     rc.move(dir);
+                    exploreNewArea(rc);
                     break;
                 }
                 dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
