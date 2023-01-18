@@ -34,29 +34,27 @@ public abstract class Robot {
                 || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
         Direction dir = BugNav.getDir(rc, dest);
-        if (rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
-            BugNav.reset();
-            Direction[] dirs = {
-                    dir.rotateLeft(),
-                    dir.rotateRight(),
-                    dir.rotateRight().rotateRight(),
-                    dir.rotateLeft().rotateLeft(),
-                    dir.rotateLeft().opposite(),
-                    dir.rotateRight().opposite(),
-                    dir.opposite()
-            };
-//            rc.setIndicatorString("bump");
-            for (Direction direction : dirs) {
-                if (rc.canMove(direction)) {
-                    rc.move(direction);
-                    return;
-                }
-            }
-        } else {
-            rc.move(dir);
-        }
-
-
+//        if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
+////            BugNav.reset();
+//            Direction [] dirs = {
+//                    dir.rotateLeft(),
+//                    dir.rotateRight(),
+//                    dir.rotateRight().rotateRight(),
+//                    dir.rotateLeft().rotateLeft(),
+//                    dir.rotateLeft().opposite(),
+//                    dir.rotateRight().opposite(),
+//                    dir.opposite()
+//            };
+////            rc.setIndicatorString("bump");
+//            for (Direction direction : dirs) {
+//                if (rc.canMove(direction)) {
+//                    rc.move(direction);
+//                    return;
+//                }
+//            }
+//        } else {
+        if(dir != Direction.CENTER) rc.move(dir);
+//        }
     }
 
     static MapLocation findClosestLoc(RobotController rc, MapLocation[] locs) {
