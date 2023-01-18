@@ -27,6 +27,8 @@ public class Launcher extends Robot {
             int y = spawn_hq.y;
             double centerx = rc.getMapWidth() / 2.0;
             double centery = rc.getMapHeight() / 2.0;
+
+            // TODO: take other hq positions into account
             if (Math.abs(centerx - x) < rc.getMapWidth() / 6.0) {
                 meet = new MapLocation(x, y + 5 * (((centery-y) < 0) ? -1 : 1));
             } else if (Math.abs(centery - y) < rc.getMapWidth() / 6.0) {
