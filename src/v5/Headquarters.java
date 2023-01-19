@@ -44,12 +44,6 @@ public class Headquarters extends Robot {
 
         MapLocation spawnLoc = getBuildLoc(rc);
 
-        if(turnCount <= 3) {
-            if(smallMap || canSeeEnemyHq) rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
-            else rc.buildRobot(RobotType.CARRIER, spawnLoc);
-            return;
-        }
-
 //        int raw = rc.readSharedArray(index)-1;
 
 //        int num_islands = Comms.getNumIslands(rc);
@@ -88,17 +82,20 @@ public class Headquarters extends Robot {
         if(turnCount < 250) weight = 4;
         RobotType tryFirst = null;
         RobotType trySecond = null;
-        if(Random.nextInt(weight) == 0) {
+        if(Random.nextInt(weight) == 0 || (turnCount <= 3 && !smallMap && !canSeeEnemyHq)) {
             tryFirst = RobotType.CARRIER;
             trySecond = RobotType.LAUNCHER;
         } else {
             tryFirst = RobotType.LAUNCHER;
             trySecond = RobotType.CARRIER;
         }
-        if(rc.canBuildRobot(tryFirst, spawnLoc)) {
+        while(rc.canBuildRobot(tryFirst, spawnLoc)) {
             rc.buildRobot(tryFirst, spawnLoc);
-        } else if(rc.canBuildRobot(trySecond, spawnLoc)) {
+            spawnLoc = getBuildLoc(rc);
+        }
+        while(rc.canBuildRobot(trySecond, spawnLoc)) {
             rc.buildRobot(trySecond, spawnLoc);
+            spawnLoc = getBuildLoc(rc);
         }
     }
 
