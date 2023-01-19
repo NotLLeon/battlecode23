@@ -26,14 +26,14 @@ public class Carrier extends Robot {
     private static int island_objective_id = 0;
     private static int attempts = 0;
     private static int patience = 0;
-    private static int patience_limit = 25;
+    private static int patience_limit = 35;
 
     private static void decide_role(RobotController rc) throws GameActionException {
         int num_mana_wells = Comms.getNumManaWells(rc);
         int num_ad_wells = Comms.getNumAdWells(rc);
 
         int random_choice = Random.nextInt(num_mana_wells + num_ad_wells+1);
-        if (random_choice != 0) {
+        if (rc.getRoundNum() <= 3 || random_choice != 0) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
                 if (Random.nextBoolean()) {
                     //Mana
@@ -175,8 +175,10 @@ public class Carrier extends Robot {
 
     private static void runCarrierMoveToWell(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
-        if (rc.getLocation().isAdjacentTo(current_objective)) {
+        MapLocation curLoc = rc.getLocation();
+        if (curLoc.isAdjacentTo(current_objective)) {
             state = CARRIER_STATE.COLLECTING;
+            return;
         } else {
             moveTo(rc, current_objective);
             moveTo(rc, current_objective);
@@ -189,16 +191,18 @@ public class Carrier extends Robot {
             decide_role(rc);
         }*/
 
+
+        // If well is too busy, decide role again
         RobotInfo[] info = rc.senseNearbyRobots();
         int num_carriers = 0;
-        for (int i = 0; i < info.length; i++) {
-            num_carriers += (info[i].getTeam() == rc.getTeam()
-                    && info[i].getType() == RobotType.CARRIER
-                    && info[i].getLocation().isWithinDistanceSquared(current_objective, 4)) ? 1 : 0;
+        for (RobotInfo robotInfo : info) {
+            if (robotInfo.getTeam() == rc.getTeam()
+                    && robotInfo.getType() == RobotType.CARRIER
+                    && robotInfo.getLocation().isWithinDistanceSquared(current_objective, 4)) {
+                num_carriers++;
+            }
         }
-        if (rc.getLocation().isWithinDistanceSquared(current_objective, rc.getType().visionRadiusSquared) && num_carriers >= 9) {
-            decide_role(rc);
-        }
+        if (num_carriers > 9) decide_role(rc);
     }
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
