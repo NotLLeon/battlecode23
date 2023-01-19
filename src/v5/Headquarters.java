@@ -2,13 +2,21 @@ package v5;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 public class Headquarters extends Robot {
 
     static int index = 0;
     static int hqCount = 0;
     // static int amplifiers = 5;
-
     static boolean smallMap = false;
+    static boolean canSeeEnemyHq = false;
+
+    public enum Symmetry {
+        ROTATIONAL,
+        HORIZONTAL,
+        VERTICAL
+    }
 
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
@@ -21,12 +29,23 @@ public class Headquarters extends Robot {
 
             WellInfo[] wells = rc.senseNearbyWells();
             for (WellInfo well : wells) Comms.writeWellLoc(rc, well);
+
+            RobotInfo[] robots = rc.senseNearbyRobots();
+            for(RobotInfo robot: robots) {
+                if(robot.getType() == RobotType.HEADQUARTERS && robot.getTeam() != rc.getTeam()) {
+                    canSeeEnemyHq = true;
+                    break;
+                }
+            }
+        } else if (turnCount == 2) {
+            // unused for now
+//            Symmetry[] possibleSyms = getSymmetry(rc);
         }
 
         MapLocation spawnLoc = getBuildLoc(rc);
 
         if(turnCount <= 3) {
-            if(smallMap) rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
+            if(smallMap || canSeeEnemyHq) rc.buildRobot(RobotType.LAUNCHER, spawnLoc);
             else rc.buildRobot(RobotType.CARRIER, spawnLoc);
             return;
         }
@@ -49,20 +68,20 @@ public class Headquarters extends Robot {
 
         // TODO: rewrite
         if (currRobotCount > 20*hqCount
-                && turnCount >= 1000
+                && turnCount >= 750
                 && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLoc)
                 && turnCount % 100 == 0) {
             rc.buildRobot(RobotType.AMPLIFIER, spawnLoc);
         }
         if (currRobotCount > 20*hqCount
-                && turnCount >= 1250
+                && turnCount >= 1000
                 && rc.canBuildAnchor(Anchor.STANDARD)
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
-                && turnCount % 101 == 0) {
+                && turnCount % 75 == 0) {
             rc.buildAnchor(Anchor.STANDARD);
         }
 
-        if(currRobotCount > 30*hqCount) return;
+        if(currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
 
 
         int weight = 2;
@@ -106,5 +125,30 @@ public class Headquarters extends Robot {
             }
         }
         return spawnableLocs[Random.nextInt(spawnable)];
+    }
+
+    static Symmetry[] getSymmetry(RobotController rc) throws GameActionException {
+        int mapH = rc.getMapHeight();
+        int mapW = rc.getMapWidth();
+        MapLocation[] hqs = Comms.getHQs(rc);
+        int canRot = 1;
+        int canHor = 1;
+        int canVer= 1;
+        for(MapLocation hq1 : hqs) {
+            for(MapLocation hq2 : hqs) {
+                boolean oppX = (mapW-hq1.x-1) == hq2.x;
+                boolean oppY = (mapH-hq1.y-1) == hq2.y;
+                if(oppX && oppY) canRot = 0;
+                if(oppX) canHor = 0;
+                if(oppY) canVer = 0;
+            }
+        }
+        int numSyms = canRot + canHor + canVer;
+        Symmetry[] possibleSyms = new Symmetry[numSyms];
+        int ind = 0;
+        if(canRot == 1) possibleSyms[ind++] = Symmetry.ROTATIONAL;
+        if(canHor == 1) possibleSyms[ind++] = Symmetry.HORIZONTAL;
+        if(canVer == 1) possibleSyms[ind] = Symmetry.VERTICAL;
+        return possibleSyms;
     }
 }
