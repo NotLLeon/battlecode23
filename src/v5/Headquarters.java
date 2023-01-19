@@ -82,7 +82,8 @@ public class Headquarters extends Robot {
         if(turnCount < 250) weight = 4;
         RobotType tryFirst = null;
         RobotType trySecond = null;
-        if(Random.nextInt(weight) == 0 || (turnCount <= 3 && !smallMap && !canSeeEnemyHq)) {
+
+        if((turnCount > 3 && Random.nextInt(weight) == 0) || (turnCount <= 3 && !smallMap && !canSeeEnemyHq)) {
             tryFirst = RobotType.CARRIER;
             trySecond = RobotType.LAUNCHER;
         } else {
