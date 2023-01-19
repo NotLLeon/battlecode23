@@ -36,6 +36,7 @@ public class Launcher extends Robot {
             } else {
                 meet = new MapLocation(x + 4 * (((centerx-x) < 0) ? -1 : 1), y + 4 * (((centery-y) < 0) ? -1 : 1));
             }
+            // meet = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
 
         }
         MapLocation curLoc = rc.getLocation();
@@ -50,20 +51,27 @@ public class Launcher extends Robot {
             case GOTO_LOCATION:
 //                rc.setIndicatorString("GOTO_LOCATION");
                 moveToRadius(rc, meet, 2);
-                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(10, rc.getTeam());
+
+                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(4, rc.getTeam());
+                RobotInfo[] adjRobots = rc.senseNearbyRobots(2, rc.getTeam());
+
                 int numLaunchers = 0;
                 for (RobotInfo rob : nearbyRobots) {
                     if (rob.getType() == RobotType.LAUNCHER) numLaunchers++;
                 }
-                if (numLaunchers > 3) state = LAUNCHER_STATE.PATROL;
+                int adjLaunchers = 0;
+                for (RobotInfo rob : adjRobots) {
+                    if (rob.getType() == RobotType.LAUNCHER) adjLaunchers++;
+                }
+                if (numLaunchers > 2 && adjLaunchers > 0) state = LAUNCHER_STATE.PATROL;
                 break;
             case PATROL:
             default:
 //                rc.setIndicatorString("PATROL: " + targets[targetInd]);
                 if(!onTarget){
                     MapLocation curTarget = targets[targetInd];
-                    moveToRadius(rc, curTarget, 4);
-                    if(curLoc.isWithinDistanceSquared(curTarget, 4)) {
+                    moveToRadius(rc, curTarget, 18);
+                    if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
                         if(!canSeeHq(rc)) nextTarget();
                         else onTarget = true;
                     } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {

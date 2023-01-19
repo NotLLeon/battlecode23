@@ -34,7 +34,8 @@ public class Carrier extends Robot {
 
         int roundNum = rc.getRoundNum();
         int bound = num_mana_wells + num_ad_wells;
-        int random_choice = Random.nextInt((roundNum > 4) ? bound+1 : bound);
+//        int random_choice = Random.nextInt((roundNum > 4) ? bound+1 : bound);
+        int random_choice = Random.nextInt(bound+1);
         if (random_choice != bound) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
                 if (Random.nextBoolean()) {
