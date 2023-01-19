@@ -49,20 +49,20 @@ public class Headquarters extends Robot {
 
         // TODO: rewrite
         if (currRobotCount > 20*hqCount
-                && turnCount >= 1000
+                && turnCount >= 750
                 && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLoc)
                 && turnCount % 100 == 0) {
             rc.buildRobot(RobotType.AMPLIFIER, spawnLoc);
         }
         if (currRobotCount > 20*hqCount
-                && turnCount >= 1250
+                && turnCount >= 1000
                 && rc.canBuildAnchor(Anchor.STANDARD)
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
-                && turnCount % 101 == 0) {
+                && turnCount % 75 == 0) {
             rc.buildAnchor(Anchor.STANDARD);
         }
 
-        if(currRobotCount > 30*hqCount) return;
+        if(currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
 
 
         int weight = 2;

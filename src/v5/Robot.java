@@ -8,32 +8,28 @@ import battlecode.common.RobotController;
 public abstract class Robot {
 
     public static void moveTo(RobotController rc, MapLocation dest) throws GameActionException {
-        {
-            moveTo(rc, dest, false, -1);
-        }
+        moveTo(rc, dest, false, -1);
     }
 
     public static void moveToAdj(RobotController rc, MapLocation dest) throws GameActionException {
-        {
-            moveTo(rc, dest, true, -1);
-        }
+        moveTo(rc, dest, true, -1);
     }
 
     public static void moveToRadius(RobotController rc, MapLocation dest, int radius) throws GameActionException {
-        {
-            moveTo(rc, dest, false, radius);
-        }
+        moveTo(rc, dest, false, radius);
     }
 
     private static void moveTo(RobotController rc, MapLocation dest, boolean adj, int radius) throws GameActionException {
         MapLocation curLoc = rc.getLocation();
-
+//        rc.setIndicatorDot(curLoc, 0, 256, 0);
         if (!rc.isMovementReady()
                 || curLoc.equals(dest)
                 || (adj && curLoc.isAdjacentTo(dest))
                 || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
         Direction dir = BugNav.getDir(rc, dest);
+//        rc.setIndicatorDot(curLoc.add(dir), 0, 256, 0);
+//        rc.setIndicatorString(""+dir);
 //        if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
 ////            BugNav.reset();
 //            Direction [] dirs = {
@@ -53,6 +49,7 @@ public abstract class Robot {
 //                }
 //            }
 //        } else {
+//        rc.setIndicatorString(dir + " " + curLoc + "  " + rc.canMove(dir));
         if(dir != Direction.CENTER) rc.move(dir);
 //        }
     }
