@@ -268,7 +268,9 @@ public class Carrier extends Robot {
     private static void runCarrierCollecting(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString("COLLECTING");
 
-        if (rc.canCollectResource(current_objective, -1)) {
+        boolean ret = true;
+        while (rc.canCollectResource(current_objective, -1)) {
+            ret = false;
             // if (rng.nextBoolean()) {
             rc.collectResource(current_objective, -1);
 //            rc.setIndicatorString("Collecting, now have, AD:" +
@@ -276,7 +278,8 @@ public class Carrier extends Robot {
 //                    " MN: " + rc.getResourceAmount(ResourceType.MANA) +
 //                    " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
             // }
-        } else {
+        }
+        if(ret) {
             current_objective = getClosestHQ(rc);
             state = CARRIER_STATE.RETURNING;
         }
