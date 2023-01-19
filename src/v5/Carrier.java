@@ -32,27 +32,27 @@ public class Carrier extends Robot {
         int num_mana_wells = Comms.getNumManaWells(rc);
         int num_ad_wells = Comms.getNumAdWells(rc);
 
-        int random_choice = Random.nextInt(num_mana_wells + num_ad_wells+1);
-        if (rc.getRoundNum() <= 3 || random_choice != 0) {
+        int roundNum = rc.getRoundNum();
+        int bound = num_mana_wells + num_ad_wells;
+        int random_choice = Random.nextInt((roundNum > 4) ? bound+1 : bound);
+        if (random_choice != bound) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
                 if (Random.nextBoolean()) {
                     //Mana
                     int random_index = Random.nextInt(num_mana_wells);
                     current_objective = Comms.getManaWell(rc, random_index);
-                    state = CARRIER_STATE.MOVE_TO_WELL;
                 } else {
                     //Adamantium
                     int random_index = Random.nextInt(num_ad_wells);
                     current_objective = Comms.getAdWell(rc, random_index);
-                    state = CARRIER_STATE.MOVE_TO_WELL;
                 }
             } else {
                 int pivot = num_ad_wells;
-                random_choice--;
                 int random_index = (random_choice >= num_ad_wells) ? random_choice - num_ad_wells : random_choice;
-                current_objective = (random_choice >= num_ad_wells) ? Comms.getManaWell(rc, random_index) : Comms.getAdWell(rc, random_index);
-                state = CARRIER_STATE.MOVE_TO_WELL;
+                if(random_choice >= num_ad_wells) current_objective = Comms.getManaWell(rc, random_index);
+                else current_objective = Comms.getAdWell(rc, random_index);
             }
+            state = CARRIER_STATE.MOVE_TO_WELL;
         } else {
             state = CARRIER_STATE.EXPLORING;
         }
