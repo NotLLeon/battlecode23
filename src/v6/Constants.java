@@ -16,6 +16,7 @@ public class Constants {
     static int IDX_NUM_MANA_WELLS = 61;
     static int IDX_NUM_AD_WELLS = 62;
     static int IDX_NUM_ISLANDS = 60;
+    static int IDX_DISTRESS_SIGNAL = 59;
 
     //Temporary
     static int MAX_WELLS_STORED=20;
