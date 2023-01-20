@@ -24,22 +24,20 @@ public class Random {
 
     static int getDirectionOrderNum(Direction dir) {
         for (int i = 0; i < 8; ++i) {
-            if (directions[i] == dir) {
-                return i;
-            }
+            if (directions[i] == dir) return i;
         }
-        return 0;
+        return -1;
     }
 
     static Direction nextDir() {
         return directions[rng.nextInt(directions.length)];
     }
 
-    static Direction nextDirWeighted(int weights[], int totalWeight) {
+    static Direction nextDirWeighted(int[] weights, int totalWeight) {
         int idx = 0;
         for (int i = nextInt(totalWeight); idx < directions.length - 1; ++idx) {
             i -= weights[idx];
-            if (i <= 0) break;
+            if (i <= 0 && weights[idx] > 0) break;
         }
         return directions[idx];
     }

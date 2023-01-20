@@ -1,22 +1,18 @@
 package v5;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class Explore {
     static int prevlocIdx = 0;
     static int numMoves = 0;
     static MapLocation[] prevLocs = new MapLocation[Constants.NUM_TRACKED_LOCATIONS];
 
-    public static Direction exploreAwayFromLoc(RobotController rc, MapLocation loc) throws GameActionException {
+    public static Direction exploreAwayFromLoc(RobotController rc, MapLocation loc) {
         Direction locDir = rc.getLocation().directionTo(loc);
 
         // 8 Directions, init all weight 1
-        int weights [] = {1, 1, 1, 1, 1, 1, 1, 1};
+        int[] weights = {1, 1, 1, 1, 1, 1, 1, 1};
 
-        Direction dir;
         if (locDir != Direction.CENTER) {
             // Directions pointing towards loc lowest weight
             // Directions away from loc higher weight
@@ -26,17 +22,14 @@ public class Explore {
             weights[Random.getDirectionOrderNum(locDir.rotateLeft().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
             weights[Random.getDirectionOrderNum(locDir.rotateRight().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
         }
+        for(int i = 0; i < 8; ++i) {
+            Direction tmp = Random.directions[i];
+            if(!rc.canMove(tmp)) weights[i] = 0;
+        }
         int totalWeight = 0;
         for (int w : weights) totalWeight += w;
-        dir = Random.nextDirWeighted(weights, totalWeight);
-
-        for(int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
-            if (rc.canMove(dir)) {
-                break;
-            }
-            dir = Random.nextDirWeighted(weights, totalWeight);
-        }
-        return dir;
+        if(totalWeight == 0) return Direction.CENTER;
+        return Random.nextDirWeighted(weights, totalWeight);
     }
 
     public static void exploreNewArea(RobotController rc) throws GameActionException {
@@ -54,7 +47,7 @@ public class Explore {
 
         if (prevLocs[0] == null) {
             Direction dir = Random.nextDir();
-            for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
+            for (int i = 0; i < 8; ++i) {
                 if (rc.canMove(dir)) {
                     if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
                         prevLocs[prevlocIdx] = rc.getLocation();
@@ -65,25 +58,33 @@ public class Explore {
                     exploreNewArea(rc);
                     break;
                 }
-                dir = Random.nextDir();
+                dir = dir.rotateLeft();
             }
 
         } else {
 
+//            MapLocation avgLoc = getAvgLocation(prevLocs);
             Direction dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
-
-            for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
-                if (rc.canMove(dir)) {
-                    if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
-                        prevLocs[prevlocIdx] = rc.getLocation();
-                        prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
-                    }
-                    rc.move(dir);
-                    exploreNewArea(rc);
-                    break;
+            if(dir != Direction.CENTER) {
+                if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
+                    prevLocs[prevlocIdx] = rc.getLocation();
+                    prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
                 }
-                dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+                rc.move(dir);
+                exploreNewArea(rc);
             }
+//            for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
+//                if (rc.canMove(dir)) {
+//                    if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
+//                        prevLocs[prevlocIdx] = rc.getLocation();
+//                        prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
+//                    }
+//                    rc.move(dir);
+//                    exploreNewArea(rc);
+//                    break;
+//                }
+//                dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+//            }
         }
     }
 
