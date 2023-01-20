@@ -42,9 +42,26 @@ public class Random {
         return directions[idx];
     }
 
+    static int nextFloatWeighted(float[] weights) {
+        int sz = weights.length;
+        float[] bounds = new float[sz];
+        int x = 0;
+        for (int i = 0; i < sz; i++) {
+            x += weights[i];
+            bounds[i] = x;
+        }
+        float random = nextFloat() * bounds[sz-1];
+        for (int i = 0; i < sz; i++) {
+            if (random <= bounds[i]) return i;
+        }
+        return -1;
+    }
+
+
     static int nextInt(int bound) {
         return rng.nextInt(bound);
     }
+    static float nextFloat() {return rng.nextFloat();}
 
     static boolean nextBoolean() {
         return rng.nextBoolean();
