@@ -42,20 +42,19 @@ public class Random {
         return directions[idx];
     }
 
-    static int nextIntRandom(float[] weights) {
-        float[] bounds = new float[weights.length];
+    static int nextFloatWeighted(float[] weights) {
+        int sz = weights.length;
+        float[] bounds = new float[sz];
         int x = 0;
-        for (int i = 0; i < weights.length; i++) {
+        for (int i = 0; i < sz; i++) {
             x += weights[i];
             bounds[i] = x;
         }
-        float random = nextFloat() * bounds[weights.length];
-        for (int i = 0; i < weights.length; i++) {
-            if (random <= bounds[i]) {
-                return i;
-            }
+        float random = nextFloat() * bounds[sz-1];
+        for (int i = 0; i < sz; i++) {
+            if (random <= bounds[i]) return i;
         }
-        return weights.length;
+        return -1;
     }
 
 
