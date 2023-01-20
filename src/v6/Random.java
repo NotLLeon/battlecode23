@@ -42,7 +42,7 @@ public class Random {
         return directions[idx];
     }
 
-    static int nextFloatWeighted(float[] weights) {
+    static int nextIndexWeighted(float[] weights) {
         int sz = weights.length;
         float[] bounds = new float[sz];
         int x = 0;
