@@ -11,9 +11,6 @@ public class Constants {
 
     static int MOVES_TO_TRACK_LOCATION = 5;
 
-    // stop sampling direction
-    static int MAX_DIRECTION_SEARCH_ATTEMPTS = 32;
-
     // indices for comms
     static int IDX_NUM_HQS = 63;
     static int IDX_NUM_MANA_WELLS = 61;

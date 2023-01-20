@@ -2,8 +2,6 @@ package v5;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-
 public class Headquarters extends Robot {
 
     static int index = 0;
@@ -18,9 +16,12 @@ public class Headquarters extends Robot {
         VERTICAL
     }
 
+    private static MapInfo[] actionMapInfo = null;
+
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
         MapLocation curLoc = rc.getLocation();
+        actionMapInfo = rc.senseNearbyMapInfos(RobotType.HEADQUARTERS.actionRadiusSquared);
 
         if(turnCount == 1) {
             if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
@@ -42,7 +43,9 @@ public class Headquarters extends Robot {
 //            Symmetry[] possibleSyms = getSymmetry(rc);
         }
 
-        MapLocation spawnLoc = getBuildLoc(rc);
+        MapLocation[] spawnLocs = getSpawnableLocs(rc);
+        int spawnInd = 0;
+        int spawnSpaces = spawnLocs.length;
 
 //        int raw = rc.readSharedArray(index)-1;
 
@@ -63,9 +66,10 @@ public class Headquarters extends Robot {
         // TODO: rewrite
         if (currRobotCount > 20*hqCount
                 && turnCount >= 750
-                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLoc)
+                && spawnInd < spawnSpaces
+                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd])
                 && turnCount % 100 == 0) {
-            rc.buildRobot(RobotType.AMPLIFIER, spawnLoc);
+            rc.buildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd++]);
         }
         if (currRobotCount > 20*hqCount
                 && turnCount >= 1000
@@ -90,39 +94,35 @@ public class Headquarters extends Robot {
             tryFirst = RobotType.LAUNCHER;
             trySecond = RobotType.CARRIER;
         }
-        while(rc.canBuildRobot(tryFirst, spawnLoc)) {
-            rc.buildRobot(tryFirst, spawnLoc);
-            spawnLoc = getBuildLoc(rc);
+        while(spawnInd < spawnSpaces && rc.canBuildRobot(tryFirst, spawnLocs[spawnInd])) {
+            rc.buildRobot(tryFirst, spawnLocs[spawnInd++]);
         }
-        while(rc.canBuildRobot(trySecond, spawnLoc)) {
-            rc.buildRobot(trySecond, spawnLoc);
-            spawnLoc = getBuildLoc(rc);
+        while(spawnInd < spawnSpaces && rc.canBuildRobot(trySecond, spawnLocs[spawnInd])) {
+            rc.buildRobot(trySecond, spawnLocs[spawnInd++]);
         }
     }
 
-    static MapLocation getBuildLoc(RobotController rc) throws GameActionException {
-        int radius = rc.getType().actionRadiusSquared;
-        MapInfo[] locs = rc.senseNearbyMapInfos(radius);
+    static MapLocation[] getSpawnableLocs(RobotController rc) throws GameActionException {
         int spawnable = 0;
 
         // FIXME: jank, don't wanna make an arraylist
-        for (MapInfo mapInfo : locs) {
+        for (MapInfo mapInfo : actionMapInfo) {
             if (mapInfo.isPassable()
                     && !rc.isLocationOccupied(mapInfo.getMapLocation())) {
                 spawnable++;
             }
         }
-        if(spawnable == 0) return rc.getLocation();
+        if(spawnable == 0) return new MapLocation[]{};
         MapLocation[] spawnableLocs = new MapLocation[spawnable];
         int ind = 0;
-        for (MapInfo mapInfo : locs) {
+        for (MapInfo mapInfo : actionMapInfo) {
             MapLocation loc = mapInfo.getMapLocation();
             if (mapInfo.isPassable()
                     && !rc.isLocationOccupied(loc)) {
                 spawnableLocs[ind++] = loc;
             }
         }
-        return spawnableLocs[Random.nextInt(spawnable)];
+        return spawnableLocs;
     }
 
     static Symmetry[] getSymmetry(RobotController rc) throws GameActionException {
