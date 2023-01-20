@@ -18,7 +18,6 @@ public class Comms {
         return new MapLocation(x, y);
     }
 
-
     // *****************************************************************************************************************
     //
     // HQS
@@ -200,5 +199,42 @@ public class Comms {
         for (int i : locs.keySet()) {
             writeIslandLoc(rc, locs.get(i), i);
         }
+    }
+
+    // *****************************************************************************************************************
+    //
+    // MISC
+    //
+    // *****************************************************************************************************************
+
+    public static void setDistressSignal(RobotController rc, boolean set) throws GameActionException {
+        int curSignal = rc.readSharedArray(Constants.IDX_DISTRESS_SIGNAL);
+        MapLocation curLoc = rc.getLocation();
+        MapLocation[] hqs = getHQs(rc);
+        int hqIdx = 0;
+        for(; hqIdx < hqs.length; ++hqIdx) {
+            if(curLoc.equals(hqs[hqIdx])) break;
+        }
+        int bit = 1 << hqIdx;
+        boolean curSet = (curSignal & bit) != 0;
+        if(set == curSet) return;
+        if(set) curSignal += bit;
+        else curSignal -= bit;
+        rc.writeSharedArray(Constants.IDX_DISTRESS_SIGNAL, curSignal);
+    }
+
+    public static MapLocation[] getDistressLocations(RobotController rc) throws GameActionException {
+        int curSignal = rc.readSharedArray(Constants.IDX_DISTRESS_SIGNAL);
+        MapLocation [] hqLocs = getHQs(rc);
+        int numSigs = 0;
+        for(int i = 0; i < 4; ++i) {
+            if((curSignal & (1 << i)) != 0) ++numSigs;
+        }
+        MapLocation [] distressLocs = new MapLocation[numSigs];
+        int ind = 0;
+        for(int i = 0; i < 4; ++i) {
+            if((curSignal & (1 << i)) != 0) distressLocs[ind++] = hqLocs[i];
+        }
+        return distressLocs;
     }
 }

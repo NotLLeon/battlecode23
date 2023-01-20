@@ -8,7 +8,9 @@ public class Headquarters extends Robot {
     static int hqCount = 0;
     // static int amplifiers = 5;
     static boolean smallMap = false;
-    static boolean canSeeEnemyHq = false;
+    static MapLocation closeEnemyHqLoc = null;
+    static MapLocation closeWellLoc = null;
+    static boolean tryingtoBuildAnchor = false;
 
     public enum Symmetry {
         ROTATIONAL,
@@ -16,12 +18,9 @@ public class Headquarters extends Robot {
         VERTICAL
     }
 
-    private static MapInfo[] actionMapInfo = null;
-
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
         MapLocation curLoc = rc.getLocation();
-        actionMapInfo = rc.senseNearbyMapInfos(RobotType.HEADQUARTERS.actionRadiusSquared);
 
         if(turnCount == 1) {
             if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
@@ -29,12 +28,15 @@ public class Headquarters extends Robot {
             hqCount = rc.getRobotCount();
 
             WellInfo[] wells = rc.senseNearbyWells();
-            for (WellInfo well : wells) Comms.writeWellLoc(rc, well);
+            for (WellInfo well : wells) {
+                if(well.getResourceType() == ResourceType.ADAMANTIUM) closeWellLoc = well.getMapLocation();
+                Comms.writeWellLoc(rc, well);
+            }
 
             RobotInfo[] robots = rc.senseNearbyRobots();
             for(RobotInfo robot: robots) {
                 if(robot.getType() == RobotType.HEADQUARTERS && robot.getTeam() != rc.getTeam()) {
-                    canSeeEnemyHq = true;
+                    closeEnemyHqLoc = robot.getLocation();
                     break;
                 }
             }
@@ -43,9 +45,9 @@ public class Headquarters extends Robot {
 //            Symmetry[] possibleSyms = getSymmetry(rc);
         }
 
-        MapLocation[] spawnLocs = getSpawnableLocs(rc);
-        int spawnInd = 0;
-        int spawnSpaces = spawnLocs.length;
+//        findSpawnableLocs(rc);
+//        int spawnInd = 0;
+//        int spawnSpaces = spawnLocs.length;
 
 //        int raw = rc.readSharedArray(index)-1;
 
@@ -72,67 +74,129 @@ public class Headquarters extends Robot {
         for (int i = 0; i < Comms.getNumIslands(rc); i++) {
             rc.setIndicatorDot(Comms.getIsland(rc, i), 0,255,0);
         }
+        Direction dirToCent = curLoc.directionTo(new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2));
 
         // TODO: rewrite
         if (currRobotCount > 20*hqCount
                 && turnCount >= 750
-                && spawnInd < spawnSpaces
-                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd])
+//                && spawnInd < spawnSpaces
+//                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd])
                 && turnCount % 100 == 0) {
-            rc.buildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd++]);
+//            rc.buildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd++]);
+            buildInDir(rc, RobotType.AMPLIFIER, dirToCent);
         }
         if (currRobotCount > 20*hqCount
                 && turnCount >= 1000
-                && rc.canBuildAnchor(Anchor.STANDARD)
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
-                && turnCount % 75 == 0) {
+                && turnCount % 150 == 0) {
+            tryingtoBuildAnchor = true;
+        }
+
+        if(tryingtoBuildAnchor && rc.canBuildAnchor(Anchor.STANDARD)) {
+            tryingtoBuildAnchor = false;
             rc.buildAnchor(Anchor.STANDARD);
         }
 
-        if(currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
+        if(tryingtoBuildAnchor || currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
 
 
         int weight = 2;
-        if(turnCount < 250) weight = 4;
+//        if(turnCount < 250) weight = 4;
         RobotType tryFirst = null;
         RobotType trySecond = null;
 
-        if((turnCount > 3 && Random.nextInt(weight) == 0) || (turnCount <= 3 && !smallMap && !canSeeEnemyHq)) {
+        if((turnCount > 3 && Random.nextInt(weight) == 0)
+                || (turnCount <= 3 && !smallMap && closeEnemyHqLoc == null)) {
             tryFirst = RobotType.CARRIER;
             trySecond = RobotType.LAUNCHER;
         } else {
             tryFirst = RobotType.LAUNCHER;
             trySecond = RobotType.CARRIER;
         }
-        while(spawnInd < spawnSpaces && rc.canBuildRobot(tryFirst, spawnLocs[spawnInd])) {
-            rc.buildRobot(tryFirst, spawnLocs[spawnInd++]);
+//        while(spawnInd < spawnSpaces && rc.canBuildRobot(tryFirst, spawnLocs[spawnInd])) {
+//            rc.buildRobot(tryFirst, spawnLocs[spawnInd++]);
+//        }
+//        while(spawnInd < spawnSpaces && rc.canBuildRobot(trySecond, spawnLocs[spawnInd])) {
+//            rc.buildRobot(trySecond, spawnLocs[spawnInd++]);
+//        }
+        Direction launcherDir = closeEnemyHqLoc == null ? dirToCent : curLoc.directionTo(closeEnemyHqLoc);
+        Direction carrierDir = closeWellLoc == null ? Direction.CENTER : curLoc.directionTo(closeWellLoc);
+        Direction buildDir1, buildDir2;
+        if(tryFirst == RobotType.LAUNCHER) {
+            buildDir1 = launcherDir;
+            buildDir2 = carrierDir;
+        } else {
+            buildDir1 = carrierDir;
+            buildDir2 = launcherDir;
         }
-        while(spawnInd < spawnSpaces && rc.canBuildRobot(trySecond, spawnLocs[spawnInd])) {
-            rc.buildRobot(trySecond, spawnLocs[spawnInd++]);
+        boolean stop1 = false;
+        while(!stop1) {
+            if(buildDir1 == Direction.CENTER) stop1 = !buildInDir(rc, tryFirst, Random.nextDir());
+            else stop1 = !buildInDir(rc, tryFirst, buildDir1);
+        }
+        boolean stop2 = false;
+        while(!stop2) {
+            if(buildDir2 == Direction.CENTER) stop2 = !buildInDir(rc, trySecond, Random.nextDir());
+            else stop2 = !buildInDir(rc, trySecond, buildDir2);
         }
     }
 
-    static MapLocation[] getSpawnableLocs(RobotController rc) throws GameActionException {
-        int spawnable = 0;
+//    static void findSpawnableLocs(RobotController rc) throws GameActionException {
+//        MapInfo[] actionMapInfo = rc.senseNearbyMapInfos(RobotType.HEADQUARTERS.actionRadiusSquared);
+//        spawnableLocs.clear();
+//
+//        for (MapInfo mapInfo : actionMapInfo) {
+//            if (mapInfo.isPassable()
+//                    && !rc.isLocationOccupied(mapInfo.getMapLocation())) {
+//                spawnableLocs.add(mapInfo.getMapLocation());
+//            }
+//        }
+//    }
 
-        // FIXME: jank, don't wanna make an arraylist
-        for (MapInfo mapInfo : actionMapInfo) {
-            if (mapInfo.isPassable()
-                    && !rc.isLocationOccupied(mapInfo.getMapLocation())) {
-                spawnable++;
+    static boolean buildInDir(RobotController rc, RobotType type, Direction dir) throws GameActionException {
+        Direction[] tryDirs = {
+                dir,
+                dir.rotateRight(),
+                dir.rotateLeft(),
+                dir.rotateRight().rotateRight(),
+                dir.rotateLeft().rotateLeft(),
+                dir.rotateLeft().opposite(),
+                dir.rotateRight().opposite(),
+                dir.opposite()
+        };
+        for(Direction tryDir : tryDirs) {
+            MapLocation[] tryLocs = getDirBuildLocs(rc, tryDir);
+            for(MapLocation tryLoc : tryLocs) {
+                if(rc.canBuildRobot(type, tryLoc)) {
+                    rc.buildRobot(type, tryLoc);
+                    return true;
+                }
             }
         }
-        if(spawnable == 0) return new MapLocation[]{};
-        MapLocation[] spawnableLocs = new MapLocation[spawnable];
-        int ind = 0;
-        for (MapInfo mapInfo : actionMapInfo) {
-            MapLocation loc = mapInfo.getMapLocation();
-            if (mapInfo.isPassable()
-                    && !rc.isLocationOccupied(loc)) {
-                spawnableLocs[ind++] = loc;
-            }
+        return false;
+    }
+
+    // TODO: turn this into a giant switch
+    static MapLocation[] getDirBuildLocs(RobotController rc, Direction dir) {
+        MapLocation curLoc = rc.getLocation();
+        if(dir == Direction.NORTH
+                || dir == Direction.EAST
+                || dir == Direction.SOUTH
+                || dir == Direction.WEST) {
+            return new MapLocation[]{
+                    curLoc.add(dir).add(dir).add(dir),
+                    curLoc.add(dir).add(dir.rotateLeft()),
+                    curLoc.add(dir).add(dir.rotateRight()),
+                    curLoc.add(dir).add(dir),
+                    curLoc.add(dir)
+            };
         }
-        return spawnableLocs;
+        return new MapLocation[] {
+                curLoc.add(dir).add(dir),
+                curLoc.add(dir).add(dir.rotateLeft()),
+                curLoc.add(dir).add(dir.rotateRight()),
+                curLoc.add(dir)
+        };
     }
 
     static Symmetry[] getSymmetry(RobotController rc) throws GameActionException {

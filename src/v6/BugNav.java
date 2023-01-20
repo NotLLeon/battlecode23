@@ -15,12 +15,13 @@ public class BugNav {
     private static boolean isReachable = true;
     private static MapLocation assumedLoc = null;
 
-    // should be even, don't ask why
+    // DON'T CHANGE
     private final static int numPastLocs = 6;
     private static MapLocation[] pastLocs = new MapLocation[numPastLocs];
     private static int locIndex = -1;
 
     public static void reset() {
+        locIndex = -1;
         curDest = null;
         assumedLoc = null;
         collisionLoc = null;
@@ -65,7 +66,7 @@ public class BugNav {
                 || currentDir == dir.rotateLeft()
                 || currentDir == dir.rotateRight();
         RobotInfo hasRobot = rc.senseRobotAtLocation(loc);
-        boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
+//        boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
 //        return locInfo.isPassable() && goodCurrent && goodRobot;
         return rc.canMove(dir) && goodCurrent;
     }
@@ -73,23 +74,25 @@ public class BugNav {
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         // Bug2
 //        rc.setIndicatorString(""+collisionLoc);
-
         MapLocation curLoc = rc.getLocation();
+//        rc.setIndicatorString("" +dest);
 
         // probably stuck in same place
         if(locIndex < 0 || !curLoc.equals(pastLocs[locIndex])) {
-//            rc.setIndicatorString(Arrays.toString(pastLocs));
+            boolean needsReset = false;
+//            rc.setIndicatorString(locIndex + " " + Arrays.toString(pastLocs));
             locIndex = (locIndex+1) % numPastLocs;
             for (int i = 0; i < numPastLocs; ++i) {
                 if (i == ((numPastLocs + locIndex - 2) % numPastLocs)) continue;
                 MapLocation loc = pastLocs[i];
                 if (loc != null && loc.equals(curLoc)) {
-                    reset();
+                    needsReset = true;
 //                    rc.setIndicatorDot(curLoc, 0, 0, 256);
                     break;
                 }
             }
-            pastLocs[locIndex] = curLoc;
+            if(needsReset) reset();
+            else pastLocs[locIndex] = curLoc;
         }
 
         if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
