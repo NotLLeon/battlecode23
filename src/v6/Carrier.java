@@ -2,6 +2,7 @@ package v6;
 
 import battlecode.common.*;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -27,6 +28,26 @@ public class Carrier extends Robot {
     private static int attempts = 0;
     private static int patience = 0;
     private static int patience_limit = 35;
+    static final int weightFactor = (int) 1e6;
+    static int stratificationFactor = 2;
+    private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
+        int[] weights = new int[num_wells];
+        MapLocation[] locs = new MapLocation[num_wells];
+        for (int i = 0; i < num_wells; i++) {
+            locs[i] = (type == ResourceType.ADAMANTIUM) ? Comms.getAdWell(rc, i) : Comms.getManaWell(rc, i);
+            weights[i] = weightFactor/(int)Math.sqrt(rc.getLocation().distanceSquaredTo(locs[i]));
+        }
+        return locs[Random.nextIndexWeighted(weights)];
+    }
+    private static MapLocation random_all_well_distance(RobotController rc, int num_ad_wells, int num_mana_wells) throws GameActionException{
+        int[] weights = new int[num_ad_wells+num_mana_wells];
+        MapLocation[] locs = new MapLocation[num_ad_wells+num_mana_wells];
+        for (int i = 0; i < num_ad_wells+num_mana_wells; i++) {
+            locs[i] = (i < num_ad_wells) ? Comms.getAdWell(rc, i) : Comms.getManaWell(rc, i-num_ad_wells);
+            weights[i] = weightFactor/(int)Math.sqrt(rc.getLocation().distanceSquaredTo(locs[i]));
+        }
+        return locs[Random.nextIndexWeighted(weights)];
+    }
 
     private static void decide_role(RobotController rc) throws GameActionException {
         int num_mana_wells = Comms.getNumManaWells(rc);
@@ -34,24 +55,33 @@ public class Carrier extends Robot {
 
         int roundNum = rc.getRoundNum();
         int bound = num_mana_wells + num_ad_wells;
-//        int random_choice = Random.nextInt((roundNum > 4) ? bound+1 : bound);
-        int random_choice = Random.nextInt(bound+1);
-        if (random_choice != bound) {
+        //TODO: The following is inefficient and very scuffed.
+
+        int[] combined_weights = new int[num_mana_wells +num_ad_wells+1];
+        combined_weights[0] = weightFactor/(int)(4*Math.pow(5,stratificationFactor)*RobotType.HEADQUARTERS.visionRadiusSquared);
+        MapLocation[] combined_locs = new MapLocation[num_ad_wells+num_mana_wells];
+
+        if (Comms.getNumWells(rc) > 4) {
+            stratificationFactor = 1;
+        }
+
+        for (int i = 1; i < num_mana_wells+num_ad_wells+1; i++) {
+            combined_locs[i-1] = (i-1 < num_ad_wells) ? Comms.getAdWell(rc, i-1) : Comms.getManaWell(rc, i-1);
+            combined_weights[i] = weightFactor/(int)(Math.pow(rc.getLocation().distanceSquaredTo(combined_locs[i-1]),stratificationFactor));
+        }
+        int index = Random.nextIndexWeighted(combined_weights);
+
+        if (index != 0) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
                 if (Random.nextBoolean()) {
                     //Mana
-                    int random_index = Random.nextInt(num_mana_wells);
-                    current_objective = Comms.getManaWell(rc, random_index);
+                    current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
                 } else {
                     //Adamantium
-                    int random_index = Random.nextInt(num_ad_wells);
-                    current_objective = Comms.getAdWell(rc, random_index);
+                    current_objective = random_well_distance(rc, num_ad_wells, ResourceType.ADAMANTIUM);
                 }
             } else {
-                int pivot = num_ad_wells;
-                int random_index = (random_choice >= num_ad_wells) ? random_choice - num_ad_wells : random_choice;
-                if(random_choice >= num_ad_wells) current_objective = Comms.getManaWell(rc, random_index);
-                else current_objective = Comms.getAdWell(rc, random_index);
+                current_objective = combined_locs[index-1];
             }
             state = CARRIER_STATE.MOVE_TO_WELL;
         } else {
@@ -127,7 +157,7 @@ public class Carrier extends Robot {
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
         // TODO: rewrite
-//        rc.setIndicatorString("EXPLORING");
+        rc.setIndicatorString("EXPLORING");
 
         int[] island_ids = rc.senseNearbyIslands();
 
@@ -149,7 +179,7 @@ public class Carrier extends Robot {
             }
         }
 
-        if (new_well_loc != null) {
+        if (new_well_loc != null && Random.nextInt(3) <= 1) {
             current_objective = new_well_loc;
             state = CARRIER_STATE.MOVE_TO_WELL;
         } else {
@@ -175,7 +205,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierMoveToWell(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
+        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
         MapLocation curLoc = rc.getLocation();
         if (curLoc.isAdjacentTo(current_objective)) {
             state = CARRIER_STATE.COLLECTING;
@@ -207,7 +237,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
+        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
 
         if (rc.getLocation().isAdjacentTo(current_objective)) {
 
@@ -267,10 +297,13 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierCollecting(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("COLLECTING");
+        rc.setIndicatorString("COLLECTING");
 
         boolean ret = true;
-        while (rc.canCollectResource(current_objective, -1)) {
+        while (rc.canCollectResource(current_objective, -1)
+        && (rc.getResourceAmount(ResourceType.ADAMANTIUM)
+                +rc.getResourceAmount(ResourceType.MANA)
+                +rc.getResourceAmount(ResourceType.ELIXIR)) < 39) {
             ret = false;
             // if (rng.nextBoolean()) {
             rc.collectResource(current_objective, -1);
@@ -287,7 +320,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierIslandSearch(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("ISLAND SEARCH");
+        rc.setIndicatorString("ISLAND SEARCH");
 
         if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
             senseAndStoreWellLocs(rc);
@@ -322,7 +355,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierAnchoring(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
+        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
         int island_id = rc.senseIsland(rc.getLocation());
         if (island_id == island_objective_id) {
 //            rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");
