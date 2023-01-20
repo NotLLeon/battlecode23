@@ -42,9 +42,11 @@ public class Random {
         return directions[idx];
     }
 
+
     static int nextInt(int bound) {
         return rng.nextInt(bound);
     }
+    static float nextFloat(float bound) { return rng.nextFloat();}
 
     static boolean nextBoolean() {
         return rng.nextBoolean();
