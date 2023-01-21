@@ -8,7 +8,7 @@ import java.util.HashSet;
 public class Carrier extends Robot {
 
     public enum CARRIER_STATE {
-        COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL, ANCHORING, ISLAND_SEARCH
+        COLLECTING, EXPLORING, RETURNING, MOVE_TO_WELL, ANCHORING, ISLAND_SEARCH, RETREAT_TO_ALLY
     }
 
     private static final ResourceType [] resourceTypes = {
@@ -23,10 +23,14 @@ public class Carrier extends Robot {
     private  static HashMap<Integer, Integer> island_locs = new HashMap<Integer, Integer>();
     private static CARRIER_STATE state = CARRIER_STATE.EXPLORING;
     private static MapLocation current_objective = new MapLocation(0, 0);
+    private static MapLocation current_threat = new MapLocation(0, 0);
     private static int island_objective_id = 0;
     private static int attempts = 0;
     private static int patience = 0;
+    private static int fear_count = 0;
+    private static int fear_tolerance = 5;
     private static int patience_limit = 35;
+    private static CARRIER_STATE previous_state = CARRIER_STATE.EXPLORING;
     static final int weightFactor = (int) 1e6;
     static int stratificationFactor = 2;
     private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
@@ -122,24 +126,11 @@ public class Carrier extends Robot {
 
         for (RobotInfo robot : robotInfo) {
             if (robot.getTeam() != rc.getTeam() && robot.getType() == RobotType.LAUNCHER) {
-                MapLocation enemyLoc = robot.getLocation();
-
-                Direction dir = rc.getLocation().directionTo(robot.getLocation()).opposite();
-                Direction dir_left = dir.rotateLeft();
-                Direction dir_right = dir.rotateRight();
-                if (rc.canMove(dir)) rc.move(dir);
-                else if (rc.canMove(dir_left)) rc.move(dir_left);
-                else if (rc.canMove(dir_right))rc.move(dir_right);
-                else {
-                    Direction dir_to = dir.opposite();
-                    Direction dir_to_left = dir_to.rotateLeft();
-                    Direction dir_to_right = dir_to.rotateRight();
-                    if (rc.canMove(dir_to)) rc.move(dir_to);
-                    else if (rc.canMove(dir_to_left)) rc.move(dir_to_left);
-                    else if (rc.canMove(dir_to_right)) rc.move(dir_to_right);
-
-                    if(rc.canAttack(robot.getLocation())) rc.attack(enemyLoc);
+                if (state != CARRIER_STATE.RETREAT_TO_ALLY) {
+                    previous_state = state;
                 }
+                state = CARRIER_STATE.RETREAT_TO_ALLY;
+                break;
             }
         }
 
@@ -160,12 +151,62 @@ public class Carrier extends Robot {
             case COLLECTING:    runCarrierCollecting(rc); break;
             case ISLAND_SEARCH: runCarrierIslandSearch(rc); break;
             case ANCHORING:     runCarrierAnchoring(rc); break;
+            case RETREAT_TO_ALLY: runCarrierRetreatToAlly(rc); break;
+        }
+    }
+
+    private static void runCarrierRetreatToAlly(RobotController rc) throws GameActionException {
+        rc.setIndicatorString("RETREAT TO ALLY");
+        RobotInfo[] robos = rc.senseNearbyRobots();
+        int min_distance_ally = 10000;
+        int min_distance_threat = 10000;
+        RobotInfo closest_robo = null;
+        RobotInfo closest_threat = null;
+        boolean nearby_ally = false;
+        for (int i = 0; i < robos.length; i++) {
+            if (robos[i].getTeam() == rc.getTeam() && robos[i].getType() == RobotType.LAUNCHER) {
+                int candidate = rc.getLocation().distanceSquaredTo(robos[i].getLocation());
+                if (candidate < min_distance_ally) {
+                    min_distance_ally = candidate;
+                    closest_robo = robos[i];
+                    nearby_ally = true;
+                }
+            } else if (robos[i].getTeam() != rc.getTeam() && robos[i].getType() == RobotType.LAUNCHER) {
+                int candidate = rc.getLocation().distanceSquaredTo(robos[i].getLocation());
+                if (candidate < min_distance_threat) {
+                    min_distance_ally = candidate;
+                    closest_threat = robos[i];
+                }
+            }
+        }
+
+        if (closest_threat != null) {
+            current_threat = closest_threat.getLocation();
+            rc.setIndicatorString("RETREATING from threat at (" + current_threat.x + "," + current_threat.y + ")");
+        } else {
+            rc.setIndicatorString("RETREATING (waiting) " + fear_count);
+            fear_count++;
+            if (fear_count >= fear_tolerance
+                    || rc.getLocation().distanceSquaredTo(current_threat)
+                    > RobotType.LAUNCHER.actionRadiusSquared + 5) {
+                fear_count = 0;
+                rc.setIndicatorString("RETREATING (no longer afraid) " + fear_count);
+                state = previous_state;
+                return;
+            }
+        }
+
+        if (nearby_ally) {
+            rc.setIndicatorString("RETREATING from threat at (" + current_threat.x + "," + current_threat.y + ") to (" +(closest_robo.getLocation().x) + "," + closest_robo.getLocation().y + ")");
+            moveTo(rc, closest_robo.getLocation());
+        } else {
+            moveToOutsideRadius(rc, current_threat, RobotType.LAUNCHER.actionRadiusSquared + 5);
         }
     }
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
         // TODO: rewrite
-//        rc.setIndicatorString("EXPLORING");
+        rc.setIndicatorString("EXPLORING");
 
         int[] island_ids = rc.senseNearbyIslands();
 
@@ -213,7 +254,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierMoveToWell(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
+        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
         MapLocation curLoc = rc.getLocation();
         if (curLoc.isAdjacentTo(current_objective)) {
             state = CARRIER_STATE.COLLECTING;
@@ -245,7 +286,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
+        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
 
         if (rc.getLocation().isAdjacentTo(current_objective)) {
 
@@ -305,7 +346,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierCollecting(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("COLLECTING");
+        rc.setIndicatorString("COLLECTING");
 
         boolean ret = true;
         while (rc.canCollectResource(current_objective, -1)
@@ -328,7 +369,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierIslandSearch(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("ISLAND SEARCH");
+        rc.setIndicatorString("ISLAND SEARCH");
 
         if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
             senseAndStoreWellLocs(rc);
@@ -363,7 +404,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierAnchoring(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
+        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
         int island_id = rc.senseIsland(rc.getLocation());
         if (island_id == island_objective_id) {
 //            rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");
