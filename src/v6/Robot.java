@@ -1,11 +1,14 @@
 package v6;
 
+import java.util.HashMap;
+
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
 public abstract class Robot {
+    // public static HashMap<Direction, >
 
     public static void moveTo(RobotController rc, MapLocation dest) throws GameActionException {
         moveTo(rc, dest, false, -1);
@@ -17,6 +20,22 @@ public abstract class Robot {
 
     public static void moveToRadius(RobotController rc, MapLocation dest, int radius) throws GameActionException {
         moveTo(rc, dest, false, radius);
+    }
+    
+    public static void moveToOutsideRadius(RobotController rc, MapLocation center, int radius) throws GameActionException {
+        MapLocation currLoc = rc.getLocation();
+        if (currLoc.distanceSquaredTo(center) <= radius) {
+            Direction opp = currLoc.directionTo(center).opposite();
+            currLoc = currLoc.add(opp);
+            currLoc = currLoc.add(opp);
+            currLoc = currLoc.add(opp);
+            moveTo(rc, currLoc);
+        } else {
+            Direction dir = BugNav.getDir(rc, center);
+            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
+                moveToRadius(rc, center, radius);
+            }
+        }
     }
 
     private static void moveTo(RobotController rc, MapLocation dest, boolean adj, int radius) throws GameActionException {
