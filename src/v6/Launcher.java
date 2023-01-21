@@ -54,6 +54,8 @@ public class Launcher extends Robot {
         if(shot != null) {
             Direction moveBack = curLoc.directionTo(shot).opposite();
             if(rc.canMove(moveBack)) rc.move(moveBack);
+            else if(rc.canMove(moveBack.rotateLeft())) rc.move(moveBack.rotateLeft());
+            else if(rc.canMove(moveBack.rotateRight())) rc.move(moveBack.rotateRight());
             onTarget = false;
         }
 
@@ -86,7 +88,7 @@ public class Launcher extends Robot {
                 moveToOutsideRadius(rc, meet, 0);
                 // moveToRadius(rc, meet, 4);
 
-                rc.setIndicatorString("NUMLAUNCHERS: " + numLaunchers + " ADJLAUNCH: " + adjLaunchers);
+//                rc.setIndicatorString("NUMLAUNCHERS: " + numLaunchers + " ADJLAUNCH: " + adjLaunchers);
                 if (numLaunchers >= 3 && adjLaunchers > 0) state = LAUNCHER_STATE.PATROL;
                 break;
             case DEFEND:
