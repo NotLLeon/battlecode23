@@ -65,6 +65,15 @@ public class Headquarters extends Robot {
 //            }
 //        }
 
+        for (int i = 0; i < Comms.getNumAdWells(rc); i++) {
+            rc.setIndicatorDot(Comms.getAdWell(rc, i), 255,0,0);
+        }
+        for (int i = 0; i < Comms.getNumManaWells(rc); i++) {
+            rc.setIndicatorDot(Comms.getManaWell(rc, i), 0,0,255);
+        }
+        for (int i = 0; i < Comms.getNumIslands(rc); i++) {
+            rc.setIndicatorDot(Comms.getIsland(rc, i), 0,255,0);
+        }
         Direction dirToCent = curLoc.directionTo(new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2));
 
         // TODO: rewrite

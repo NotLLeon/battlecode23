@@ -42,17 +42,24 @@ public class Random {
         return directions[idx];
     }
 
-    static int nextIndexWeighted(float[] weights) {
+    static int nextIndexWeighted(int[] weights) {
         int sz = weights.length;
-        float[] bounds = new float[sz];
+        int[] bounds = new int[sz];
         int x = 0;
+        //System.out.print("Bounds: ");
         for (int i = 0; i < sz; i++) {
             x += weights[i];
             bounds[i] = x;
+            //System.out.print(bounds[i] + " ");
         }
-        float random = nextFloat() * bounds[sz-1];
+        int random = nextInt(bounds[sz-1]);
+       //System.out.print("Random (raw) : " + random_raw);
+       //System.out.print("Random : " + random);
         for (int i = 0; i < sz; i++) {
-            if (random <= bounds[i]) return i;
+            if (random <= bounds[i]) {
+                //System.out.print("Choice: " + i);
+                return i;
+            }
         }
         return -1;
     }
@@ -61,8 +68,6 @@ public class Random {
     static int nextInt(int bound) {
         return rng.nextInt(bound);
     }
-    static float nextFloat() {return rng.nextFloat();}
-
     static boolean nextBoolean() {
         return rng.nextBoolean();
     }
