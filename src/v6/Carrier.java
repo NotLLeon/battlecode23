@@ -42,6 +42,8 @@ public class Carrier extends Robot {
         int[] weights = new int[num_ad_wells+num_mana_wells];
         MapLocation[] locs = new MapLocation[num_ad_wells+num_mana_wells];
         for (int i = 0; i < num_ad_wells+num_mana_wells; i++) {
+            int dist = rc.getLocation().distanceSquaredTo(locs[i]);
+            if (dist == 0) return locs[i];
             locs[i] = (i < num_ad_wells) ? Comms.getAdWell(rc, i) : Comms.getManaWell(rc, i-num_ad_wells);
             weights[i] = weightFactor/(int)Math.sqrt(rc.getLocation().distanceSquaredTo(locs[i]));
         }
@@ -56,7 +58,7 @@ public class Carrier extends Robot {
         int bound = num_mana_wells + num_ad_wells;
         //TODO: The following is inefficient and very scuffed.
 
-        int[] combined_weights = new int[num_mana_wells +num_ad_wells+1];
+        int[] combined_weights = new int[num_mana_wells+num_ad_wells+1];
         combined_weights[0] = weightFactor/(int)(4*Math.pow(5,stratificationFactor)*RobotType.HEADQUARTERS.visionRadiusSquared);
         MapLocation[] combined_locs = new MapLocation[num_ad_wells+num_mana_wells];
 
@@ -65,8 +67,15 @@ public class Carrier extends Robot {
         }
 
         for (int i = 1; i < num_mana_wells+num_ad_wells+1; i++) {
-            combined_locs[i-1] = (i-1 < num_ad_wells) ? Comms.getAdWell(rc, i-1) : Comms.getManaWell(rc, i-1);
-            combined_weights[i] = weightFactor/(int)(Math.pow(rc.getLocation().distanceSquaredTo(combined_locs[i-1]),stratificationFactor));
+            if(i-1 < num_ad_wells) combined_locs[i-1] = Comms.getAdWell(rc, i-1);
+            else combined_locs[i-1] = Comms.getManaWell(rc, i-1-num_ad_wells);
+            int dist = rc.getLocation().distanceSquaredTo(combined_locs[i-1]);
+            if (dist == 0) {
+                current_objective = combined_locs[i-1];
+                state = CARRIER_STATE.COLLECTING;
+                return;
+            }
+            combined_weights[i] = weightFactor/(int)(Math.pow(dist,stratificationFactor));
         }
         int index = Random.nextIndexWeighted(combined_weights);
 
