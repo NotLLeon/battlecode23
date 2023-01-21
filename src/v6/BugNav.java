@@ -13,17 +13,16 @@ public class BugNav {
     private static Direction traceDir = null;
     private static MapLocation collisionLoc = null;
     private static boolean isReachable = true;
-    private static MapLocation assumedLoc = null;
-
-    // DON'T CHANGE
-    private final static int numPastLocs = 6;
+//    private static MapLocation assumedLoc = null;
+    private final static int numPastLocs = 15;
     private static MapLocation[] pastLocs = new MapLocation[numPastLocs];
     private static int locIndex = -1;
 
     public static void reset() {
+        pastLocs = new MapLocation[numPastLocs];
         locIndex = -1;
         curDest = null;
-        assumedLoc = null;
+//        assumedLoc = null;
         collisionLoc = null;
         obstacle = false;
         isReachable = true;
@@ -72,6 +71,8 @@ public class BugNav {
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
+//        rc.setIndicatorString(locIndex + Arrays.toString(pastLocs));
+//        rc.setIndicatorDot(rc.getLocation(), 256, 0, 0);
         // Bug2
 //        rc.setIndicatorString(""+collisionLoc);
         MapLocation curLoc = rc.getLocation();
@@ -95,10 +96,11 @@ public class BugNav {
             else pastLocs[locIndex] = curLoc;
         }
 
-        if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
-            reset();
+//        if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
+        if(!dest.equals(curDest)) {
+                reset();
             curDest = dest;
-            assumedLoc = curLoc;
+//            assumedLoc = curLoc;
         }
         Direction dir = curLoc.directionTo(dest);
 
@@ -115,7 +117,7 @@ public class BugNav {
         if(!obstacle) {
             if (isPassable(rc, dir)) {
 //                rc.setIndicatorString("move: " + dir);
-                assumedLoc = curLoc.add(dir);
+//                assumedLoc = curLoc.add(dir);
                 return dir;
             }
 
@@ -146,7 +148,7 @@ public class BugNav {
         for(int i = 0; i < 8; ++i) {
             if(isPassable(rc, nextDir)) {
                 traceDir = nextDir;
-                assumedLoc = curLoc.add(traceDir);
+//                assumedLoc = curLoc.add(traceDir);
                 return traceDir;
             } else {
                 nextDir = nextDir.rotateLeft();
