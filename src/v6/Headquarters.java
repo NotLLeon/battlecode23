@@ -56,14 +56,18 @@ public class Headquarters extends Robot {
 //             MapLocation island = Comms.getIsland(rc, i);
 //         }
         int currRobotCount = rc.getRobotCount();
-//        if (currRobotCount <= (rc.getMapWidth()*rc.getMapHeight()/5)) {
-//        RobotInfo[] nearby_enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
-//        int enemyLaunchers = 0;
-//        for (int i = 0; i < nearby_enemies.length; i++) {
-//            if (nearby_enemies[i].type == RobotType.LAUNCHER) {
-//                enemyLaunchers++;
-//            }
-//        }
+        RobotInfo[] nearby_enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
+        int enemyLaunchers = 0;
+        for (int i = 0; i < nearby_enemies.length; i++) {
+            if (nearby_enemies[i].type == RobotType.LAUNCHER) {
+                enemyLaunchers++;
+            }
+        }
+        if (enemyLaunchers > 0) {
+            Comms.setDistressSignal(rc, true);
+        } else {
+            Comms.setDistressSignal(rc, false);
+        }
 
         Direction dirToCent = curLoc.directionTo(new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2));
 
