@@ -27,7 +27,12 @@ public abstract class Robot {
                 || (adj && curLoc.isAdjacentTo(dest))
                 || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
-        Direction dir = BugNav.getDir(rc, dest);
+//        Direction dir = BugNav.getDir(rc, dest);
+        Direction dir = Direction.CENTER;
+//        if(rc.canSenseLocation(dest)) dir = BFS.getDir(rc, dest);
+        if(dir == Direction.CENTER) dir = BugNav.getDir(rc, dest);
+//        if(!rc.canMove(dir)) return;
+
 //        rc.setIndicatorDot(curLoc.add(dir), 0, 256, 0);
 //        rc.setIndicatorString(""+dir);
 //        if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
