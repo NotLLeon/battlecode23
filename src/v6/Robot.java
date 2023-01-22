@@ -24,17 +24,17 @@ public abstract class Robot {
     
     public static void moveToOutsideRadius(RobotController rc, MapLocation center, int radius) throws GameActionException {
         MapLocation currLoc = rc.getLocation();
-        if (currLoc.distanceSquaredTo(center) <= radius) {
-            Direction opp = currLoc.directionTo(center).opposite();
-            currLoc = currLoc.add(opp);
-            currLoc = currLoc.add(opp);
-            currLoc = currLoc.add(opp);
-            moveTo(rc, currLoc);
+        if (currLoc.isWithinDistanceSquared(center, radius)) {
+//            Direction opp = currLoc.directionTo(center).opposite();
+//            currLoc = currLoc.add(opp);
+//            currLoc = currLoc.add(opp);
+//            currLoc = currLoc.add(opp);
+            moveTo(rc, center);
         } else {
-            Direction dir = BugNav.getDir(rc, center);
-            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
-                moveToRadius(rc, center, radius);
-            }
+//            Direction dir = BugNav.getDir(rc, center);
+//            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
+            moveToRadius(rc, center, radius);
+//            }
         }
     }
 
