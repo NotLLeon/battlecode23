@@ -98,7 +98,7 @@ public class BugNav {
 
 //        if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
         if(!dest.equals(curDest)) {
-                reset();
+            reset();
             curDest = dest;
 //            assumedLoc = curLoc;
         }
