@@ -164,7 +164,7 @@ public class Carrier extends Robot {
         RobotInfo closest_threat = null;
         boolean nearby_ally = false;
         for (int i = 0; i < robos.length; i++) {
-            if (robos[i].getTeam() == rc.getTeam() && robos[i].getType() == RobotType.LAUNCHER) {
+            if (robos[i].getTeam() == rc.getTeam() && (robos[i].getType() == RobotType.LAUNCHER || robos[i].getType() == RobotType.HEADQUARTERS)) {
                 int candidate = rc.getLocation().distanceSquaredTo(robos[i].getLocation());
                 if (candidate < min_distance_ally) {
                     min_distance_ally = candidate;
@@ -188,7 +188,7 @@ public class Carrier extends Robot {
             fear_count++;
             if (fear_count >= fear_tolerance
                     || rc.getLocation().distanceSquaredTo(current_threat)
-                    > RobotType.LAUNCHER.actionRadiusSquared + 5) {
+                    > RobotType.LAUNCHER.actionRadiusSquared + 9) {
                 fear_count = 0;
                 rc.setIndicatorString("RETREATING (no longer afraid) " + fear_count);
                 state = previous_state;
