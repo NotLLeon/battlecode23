@@ -230,6 +230,7 @@ public class Carrier extends Robot {
             moveTo(rc, current_objective);
             moveTo(rc, current_objective);
         }
+        senseAndStoreWellLocs(rc);
         curLoc = rc.getLocation();
         if(curLoc.isAdjacentTo(current_objective)) {
             state = CARRIER_STATE.COLLECTING;
@@ -267,6 +268,7 @@ public class Carrier extends Robot {
 //        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
 //        current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
+        senseAndStoreWellLocs(rc);
         if (rc.getLocation().isAdjacentTo(current_objective)) {
 
             for(ResourceType resType: resourceTypes) {
