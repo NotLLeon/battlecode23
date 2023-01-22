@@ -27,7 +27,7 @@ public class Carrier extends Robot {
     private static int attempts = 0;
     private static int patience = 0;
     private static final int explore_patience_limit = 35;
-    private static final int moveToWell_patience_limit = 15;
+    private static final int moveToWell_patience_limit = 20;
     static final int weightFactor = (int) 1e6;
     static int stratificationFactor = 2;
     private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
@@ -167,6 +167,8 @@ public class Carrier extends Robot {
             case ISLAND_SEARCH: runCarrierIslandSearch(rc); break;
             case ANCHORING:     runCarrierAnchoring(rc); break;
         }
+
+
     }
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
@@ -235,7 +237,7 @@ public class Carrier extends Robot {
             return;
         }
         int disToWell = curLoc.distanceSquaredTo(current_objective);
-        if(disToWell > 4 && disToWell <= 20) ++patience;
+        if(disToWell > 4 && disToWell <= 36) ++patience;
         if(patience >= moveToWell_patience_limit) {
             patience = 0;
             decide_role(rc);
