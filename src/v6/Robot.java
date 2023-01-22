@@ -24,17 +24,18 @@ public abstract class Robot {
     
     public static void moveToOutsideRadius(RobotController rc, MapLocation center, int radius) throws GameActionException {
         MapLocation currLoc = rc.getLocation();
-        if (currLoc.distanceSquaredTo(center) <= radius) {
+        if (currLoc.isWithinDistanceSquared(center, radius)) {
             Direction opp = currLoc.directionTo(center).opposite();
-            currLoc = currLoc.add(opp);
-            currLoc = currLoc.add(opp);
-            currLoc = currLoc.add(opp);
-            moveTo(rc, currLoc);
+//            currLoc = currLoc.add(opp);
+//            currLoc = currLoc.add(opp);
+//            currLoc = currLoc.add(opp);
+            moveTo(rc, center.add(opp).add(opp).add(opp));
         } else {
-            Direction dir = BugNav.getDir(rc, center);
-            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
-                moveToRadius(rc, center, radius);
-            }
+//            Direction dir = BugNav.getDir(rc, center);
+//            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
+            int r = (int)Math.sqrt(radius) + 1;
+            moveToRadius(rc, center, r*r);
+//            }
         }
     }
 
@@ -46,7 +47,12 @@ public abstract class Robot {
                 || (adj && curLoc.isAdjacentTo(dest))
                 || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
-        Direction dir = BugNav.getDir(rc, dest);
+//        Direction dir = BugNav.getDir(rc, dest);
+        Direction dir = Direction.CENTER;
+//        if(rc.canSenseLocation(dest)) dir = BFS.getDir(rc, dest);
+        if(dir == Direction.CENTER) dir = BugNav.getDir(rc, dest);
+//        if(!rc.canMove(dir)) return;
+
 //        rc.setIndicatorDot(curLoc.add(dir), 0, 256, 0);
 //        rc.setIndicatorString(""+dir);
 //        if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
