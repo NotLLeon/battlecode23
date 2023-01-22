@@ -26,7 +26,8 @@ public class Carrier extends Robot {
     private static int island_objective_id = 0;
     private static int attempts = 0;
     private static int patience = 0;
-    private static int patience_limit = 35;
+    private static final int explore_patience_limit = 35;
+    private static final int moveToWell_patience_limit = 15;
     static final int weightFactor = (int) 1e6;
     static int stratificationFactor = 2;
     private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
@@ -195,6 +196,7 @@ public class Carrier extends Robot {
         if (new_well_loc != null && Random.nextInt(3) <= 1) {
             current_objective = new_well_loc;
             state = CARRIER_STATE.MOVE_TO_WELL;
+            patience = 0;
             runCarrierMoveToWell(rc);
         } else {
             exploreNewArea(rc);
@@ -211,11 +213,11 @@ public class Carrier extends Robot {
 
         patience++;
 
-        if (patience >= patience_limit) {
+        if (patience >= explore_patience_limit) {
             current_objective = getClosestHQ(rc);
+            patience = 0;
             state = CARRIER_STATE.RETURNING;
             runCarrierReturning(rc);
-            patience = 0;
         }
     }
 
@@ -231,6 +233,12 @@ public class Carrier extends Robot {
             state = CARRIER_STATE.COLLECTING;
             runCarrierCollecting(rc);
             return;
+        }
+        int disToWell = curLoc.distanceSquaredTo(current_objective);
+        if(disToWell > 4 && disToWell <= 20) ++patience;
+        if(patience >= moveToWell_patience_limit) {
+            patience = 0;
+            decide_role(rc);
         }
        /* patience += (rc.getLocation().distanceSquaredTo(current_objective) > 4) ? 1 : 0;
 
@@ -255,8 +263,7 @@ public class Carrier extends Robot {
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
-        // TODO: just call getClosestHQ once
-        current_objective = getClosestHQ(rc);
+//        current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
         if (rc.getLocation().isAdjacentTo(current_objective)) {
 
