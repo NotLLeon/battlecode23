@@ -1,6 +1,7 @@
 package v6;
 
 import battlecode.common.*;
+import java.util.ArrayList;
 
 public class Launcher extends Robot {
 
@@ -112,7 +113,28 @@ public class Launcher extends Robot {
                 }
                 break;
         }
-        tryToShoot(rc);
+        if(shot == null) shot = tryToShoot(rc);
+        if(shot == null) takePotshot(rc);
+    }
+
+    private static ArrayList<MapLocation> shotLocs = new ArrayList<MapLocation>();
+    private static void takePotshot(RobotController rc) throws GameActionException {
+        shotLocs.clear();
+        MapLocation curLoc = rc.getLocation();
+        // shoot randomly at a position that is out of vision
+        if(!rc.senseMapInfo(curLoc).hasCloud()) {
+            MapLocation[] cloudLocs = rc.senseNearbyCloudLocations();
+            for (MapLocation cloudLoc : cloudLocs) {
+//                System.out.println(loc.isWithinDistanceSquared(curLoc, 4) + " " + info.hasCloud());
+                if (!cloudLoc.isWithinDistanceSquared(curLoc, 4) && rc.canActLocation(cloudLoc)) {
+                    shotLocs.add(cloudLoc);
+                }
+            }
+        } else {
+            // TODO: shoot at some location outside vision radius (4)
+        }
+//        rc.setIndicatorString(""+shotLocs.size());
+        if(!shotLocs.isEmpty()) rc.attack(shotLocs.get(Random.nextInt(shotLocs.size())));
     }
 
     private static boolean canSeeHq(RobotController rc) throws GameActionException {
