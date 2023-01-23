@@ -89,7 +89,7 @@ public class Launcher extends Robot {
                     } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
                         roundsNearTarget++;
                     }
-                    if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
+                    if(!isReachable(rc, curTarget) || roundsNearTarget > 5) {
                         nextTarget();
                     }
                 }
@@ -193,18 +193,32 @@ public class Launcher extends Robot {
         double centery = rc.getMapHeight() / 2.0;
 
         MapLocation[] hqs = Comms.getHQs(rc);
-        // TODO: take other hq positions into account
+        // // TODO: take other hq positions into account
+        // if (Math.abs(centerx - x) < rc.getMapWidth() / 6.0) {
+        //     meet = new MapLocation(x, y + (4 + (turnCount / 30)) * (((centery-y) < 0) ? -1 : 1));
+        // } else if (Math.abs(centery - y) < rc.getMapWidth() / 6.0) {
+        //     meet = new MapLocation(x + (4 + (turnCount / 30)) * (((centerx-x) < 0) ? -1 : 1), y);
+        // } else {
+        //     meet = new MapLocation(x + (3 + turnCount / 30) * (((centerx-x) < 0) ? -1 : 1), y + (3 + (turnCount / 30)) * (((centery-y) < 0) ? -1 : 1));
+        // }
+        // MapLocation center = new MapLocation((int)centerx, (int)centery);
+        // if (spawn_hq.distanceSquaredTo(meet) > spawn_hq.distanceSquaredTo(center)) {
+        //     meet = center;
+        // }
         if (Math.abs(centerx - x) < rc.getMapWidth() / 6.0) {
-            meet = new MapLocation(x, y + (4 + (turnCount / 30)) * (((centery-y) < 0) ? -1 : 1));
+            meet = new MapLocation(x, y + 7 * (((centery-y) < 0) ? -1 : 1));
         } else if (Math.abs(centery - y) < rc.getMapWidth() / 6.0) {
-            meet = new MapLocation(x + (4 + (turnCount / 30)) * (((centerx-x) < 0) ? -1 : 1), y);
+            meet = new MapLocation(x + 7 * (((centerx-x) < 0) ? -1 : 1), y);
         } else {
-            meet = new MapLocation(x + (3 + turnCount / 30) * (((centerx-x) < 0) ? -1 : 1), y + (3 + (turnCount / 30)) * (((centery-y) < 0) ? -1 : 1));
+            meet = new MapLocation(x + 5 * (((centerx-x) < 0) ? -1 : 1), y + 5 * (((centery-y) < 0) ? -1 : 1));
         }
-        MapLocation center = new MapLocation((int)centerx, (int)centery);
-        if (spawn_hq.distanceSquaredTo(meet) > spawn_hq.distanceSquaredTo(center)) {
-            meet = center;
+        int xtot = 0;
+        int ytot = 0;
+        for (MapLocation hq : hqs) {
+            xtot += hq.x;
+            ytot += hq.y;
         }
+        meet = new MapLocation((xtot + rc.getMapWidth()) / (hqs.length + 2), (ytot + rc.getMapHeight()) / (hqs.length + 2));
     }
 
     private static void shootatCloud(RobotController rc) throws GameActionException {

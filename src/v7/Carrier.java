@@ -84,7 +84,7 @@ public class Carrier extends Robot {
         if (index != 0) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
 //                if (Random.nextBoolean()) {
-                if(Random.nextInt(5) <= 2) {
+                if(Random.nextInt(8) <= 6) {
                     //Mana
                     current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
                 } else {
