@@ -271,7 +271,7 @@ public class Carrier extends Robot {
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
-//        current_objective = getClosestHQ(rc);
+        current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
         senseAndStoreWellLocs(rc);
         if (rc.getLocation().isAdjacentTo(current_objective)) {
