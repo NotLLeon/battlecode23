@@ -26,13 +26,8 @@ public abstract class Robot {
         MapLocation currLoc = rc.getLocation();
         if (currLoc.isWithinDistanceSquared(center, radius)) {
             Direction opp = currLoc.directionTo(center).opposite();
-            currLoc = currLoc.add(opp);
-            currLoc = currLoc.add(opp);
-            currLoc = currLoc.add(opp);
-            moveTo(rc, center.add(opp).add(opp).add(opp));
+            moveTo(rc, currLoc.add(opp).add(opp).add(opp));
         } else {
-//            Direction dir = BugNav.getDir(rc, center);
-//            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
             int r = (int)Math.sqrt(radius) + 1;
             moveToRadius(rc, center, r*r);
 //            }
