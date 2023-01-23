@@ -81,15 +81,21 @@ public class Carrier extends Robot {
         }
         int index = Random.nextIndexWeighted(combined_weights);
 
+        double total_ad = (double)Comms.getTotalAd(rc);
+        double total_resources = (double)(Comms.getTotalAd(rc) + Comms.getTotalMana(rc));
+
+        double ratio = (total_resources > 0) ? total_ad/total_resources : Constants.ideal_ratio;
+
         if (index != 0) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
 //                if (Random.nextBoolean()) {
-                if(Random.nextInt(5) <= 2) {
-                    //Mana
-                    current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
-                } else {
+                double random = (double)Random.nextInt(weightFactor)/(double)(weightFactor);
+                if(random <= Constants.ideal_ratio*Constants.ideal_ratio/ratio) {
                     //Adamantium
                     current_objective = random_well_distance(rc, num_ad_wells, ResourceType.ADAMANTIUM);
+                } else {
+                    //Mana
+                    current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
                 }
             } else {
                 current_objective = combined_locs[index-1];
