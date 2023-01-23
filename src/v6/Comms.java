@@ -140,6 +140,24 @@ public class Comms {
         return false;
     }
 
+    public static ResourceType getWellType(RobotController rc, MapLocation loc) throws GameActionException {
+        int encoded = encodeWellLoc(rc, loc);
+        int index = 0;
+        for (int i = 0; i < getNumAdWells(rc); i++) {
+            index = Comms.encodeWellLoc(rc,getAdWell(rc, i));
+            if (encoded == index) {
+                return ResourceType.ADAMANTIUM;
+            }
+        }
+        for (int i = 0; i < getNumManaWells(rc); i++) {
+            index = Comms.encodeWellLoc(rc,getManaWell(rc, i));
+            if (encoded == index) {
+                return ResourceType.MANA;
+            }
+        }
+        return ResourceType.NO_RESOURCE;
+    }
+
     // *****************************************************************************************************************
     //
     // ISLANDS
