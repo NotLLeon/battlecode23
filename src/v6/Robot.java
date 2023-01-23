@@ -29,7 +29,7 @@ public abstract class Robot {
 //            currLoc = currLoc.add(opp);
 //            currLoc = currLoc.add(opp);
 //            currLoc = currLoc.add(opp);
-            moveTo(rc, center.add(opp).add(opp).add(opp));
+            moveTo(rc, currLoc.add(opp).add(opp).add(opp));
         } else {
 //            Direction dir = BugNav.getDir(rc, center);
 //            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
