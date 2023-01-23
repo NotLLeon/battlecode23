@@ -69,18 +69,15 @@ public class Headquarters extends Robot {
 //             MapLocation island = Comms.getIsland(rc, i);
 //         }
         int currRobotCount = rc.getRobotCount();
-        RobotInfo[] nearby_enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
+        RobotInfo[] nearby_robots = rc.senseNearbyRobots();
         int enemyLaunchers = 0;
-        for (int i = 0; i < nearby_enemies.length; i++) {
-            if (nearby_enemies[i].type == RobotType.LAUNCHER) {
+        for(RobotInfo robot : nearby_robots) {
+            if(robot.getType() == RobotType.LAUNCHER && robot.getTeam() != rc.getTeam()) {
                 enemyLaunchers++;
             }
         }
-        if (enemyLaunchers > 0) {
-            Comms.setDistressSignal(rc, true);
-        } else {
-            Comms.setDistressSignal(rc, false);
-        }
+
+        Comms.setDistressSignal(rc, enemyLaunchers > 0);
 
         for (int i = 0; i < Comms.getNumAdWells(rc); i++) {
             rc.setIndicatorDot(Comms.getAdWell(rc, i), 255,0,0);

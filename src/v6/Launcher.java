@@ -119,10 +119,13 @@ public class Launcher extends Robot {
 
     private static ArrayList<MapLocation> shotLocs = new ArrayList<MapLocation>();
     private static void takePotshot(RobotController rc) throws GameActionException {
-        shotLocs.clear();
+        if(!rc.isActionReady()) return;
+
         MapLocation curLoc = rc.getLocation();
         // shoot randomly at a position that is out of vision
         if(!rc.senseMapInfo(curLoc).hasCloud()) {
+            shotLocs.clear();
+
             MapLocation[] cloudLocs = rc.senseNearbyCloudLocations();
             for (MapLocation cloudLoc : cloudLocs) {
 //                System.out.println(loc.isWithinDistanceSquared(curLoc, 4) + " " + info.hasCloud());
@@ -130,11 +133,38 @@ public class Launcher extends Robot {
                     shotLocs.add(cloudLoc);
                 }
             }
+            if(!shotLocs.isEmpty()) rc.attack(shotLocs.get(Random.nextInt(shotLocs.size())));
+
         } else {
-            // TODO: shoot at some location outside vision radius (4)
+
+            // FIXME: make less jank
+            Direction randomDir = Random.nextDir();
+            int dis = Random.nextInt(2) + 3;
+            MapLocation shootLoc = curLoc;
+            while(dis-- > 0) shootLoc = shootLoc.add(randomDir);
+            if(rc.canAttack(shootLoc)) {
+                rc.attack(shootLoc);
+                return;
+            }
+
+            randomDir = randomDir.rotateLeft();
+            dis = Random.nextInt(2) + 3;
+            shootLoc = curLoc;
+            while(dis-- > 0) shootLoc = shootLoc.add(randomDir);
+            if(rc.canAttack(shootLoc)) {
+                rc.attack(shootLoc);
+                return;
+            }
+
+            randomDir = randomDir.rotateLeft();
+            dis = Random.nextInt(2) + 3;
+            shootLoc = curLoc;
+            while(dis-- > 0) shootLoc = shootLoc.add(randomDir);
+            if(rc.canAttack(shootLoc)) {
+                rc.attack(shootLoc);
+            }
         }
 //        rc.setIndicatorString(""+shotLocs.size());
-        if(!shotLocs.isEmpty()) rc.attack(shotLocs.get(Random.nextInt(shotLocs.size())));
     }
 
     private static boolean canSeeHq(RobotController rc) throws GameActionException {
