@@ -45,6 +45,19 @@ public class Headquarters extends Robot {
 //            Symmetry[] possibleSyms = getSymmetry(rc);
         }
 
+        //Putting the check here just in case.
+        if (Comms.getNumHQs(rc) > 0) {
+            if (Comms.getHQs(rc)[0].equals(curLoc)) {
+                Comms.setTotalAd(rc,rc.getResourceAmount(ResourceType.ADAMANTIUM));
+                Comms.setTotalMana(rc,rc.getResourceAmount(ResourceType.MANA));
+            } else {
+                int old_ad = Comms.getTotalAd(rc);
+                int old_mana = Comms.getTotalMana(rc);
+                Comms.setTotalAd(rc, old_ad + rc.getResourceAmount(ResourceType.ADAMANTIUM));
+                Comms.setTotalMana(rc, old_mana + rc.getResourceAmount(ResourceType.MANA));
+            }
+        }
+
 //        findSpawnableLocs(rc);
 //        int spawnInd = 0;
 //        int spawnSpaces = spawnLocs.length;
