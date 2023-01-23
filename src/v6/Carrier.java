@@ -95,11 +95,11 @@ public class Carrier extends Robot {
                 current_objective = combined_locs[index-1];
             }
             state = CARRIER_STATE.MOVE_TO_WELL;
-            runCarrierMoveToWell(rc);
         } else {
             state = CARRIER_STATE.EXPLORING;
-            runCarrierExploring(rc);
         }
+        runCarrierState(rc);
+
     }
 
     private static WellInfo[] senseAndStoreWellLocs(RobotController rc) {
@@ -158,7 +158,14 @@ public class Carrier extends Robot {
             MapLocation loc = Comms.getAdWell(rc, i);
             rc.setIndicatorDot(loc, 0, 0, 255);
         }*/
+        runCarrierState(rc);
 
+
+    }
+
+    private static final int BYTECODE_THRESHOLD = 3000;
+    private static void runCarrierState(RobotController rc) throws GameActionException {
+        if(Clock.getBytecodesLeft() < BYTECODE_THRESHOLD) return;
         switch (state) {
             case EXPLORING:     runCarrierExploring(rc); break;
             case MOVE_TO_WELL:  runCarrierMoveToWell(rc); break;
@@ -167,8 +174,6 @@ public class Carrier extends Robot {
             case ISLAND_SEARCH: runCarrierIslandSearch(rc); break;
             case ANCHORING:     runCarrierAnchoring(rc); break;
         }
-
-
     }
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
@@ -199,7 +204,7 @@ public class Carrier extends Robot {
             current_objective = new_well_loc;
             state = CARRIER_STATE.MOVE_TO_WELL;
             patience = 0;
-            runCarrierMoveToWell(rc);
+            runCarrierState(rc);
         } else {
             exploreNewArea(rc);
         }
@@ -219,7 +224,7 @@ public class Carrier extends Robot {
             current_objective = getClosestHQ(rc);
             patience = 0;
             state = CARRIER_STATE.RETURNING;
-            runCarrierReturning(rc);
+            runCarrierState(rc);
         }
     }
 
@@ -234,7 +239,7 @@ public class Carrier extends Robot {
         curLoc = rc.getLocation();
         if(curLoc.isAdjacentTo(current_objective)) {
             state = CARRIER_STATE.COLLECTING;
-            runCarrierCollecting(rc);
+            runCarrierState(rc);
             return;
         }
         int disToWell = curLoc.distanceSquaredTo(current_objective);
@@ -313,7 +318,7 @@ public class Carrier extends Robot {
                     island_objective_id = Comms.getIslandID(rc, random);
                     state = CARRIER_STATE.ANCHORING;
                     attempts = 0;
-                    runCarrierAnchoring(rc);
+                    runCarrierState(rc);
                     return;
                 }
                 if (rc.senseRobotAtLocation(current_objective).getTotalAnchors() > 0) {
@@ -345,7 +350,7 @@ public class Carrier extends Robot {
         if(ret) {
             current_objective = getClosestHQ(rc);
             state = CARRIER_STATE.RETURNING;
-            runCarrierReturning(rc);
+            runCarrierState(rc);
         }
     }
 
@@ -374,16 +379,16 @@ public class Carrier extends Robot {
                     rc.placeAnchor();
                     current_objective = getClosestHQ(rc);
                     state = CARRIER_STATE.RETURNING;
-                    runCarrierReturning(rc);
                 }
             } else {
                 exploreNewArea(rc);
+                return;
             }
         } else {
             current_objective = getClosestHQ(rc);
             state = CARRIER_STATE.RETURNING;
-            runCarrierReturning(rc);
         }
+        runCarrierState(rc);
     }
 
     private static void runCarrierAnchoring(RobotController rc) throws GameActionException {
@@ -404,13 +409,13 @@ public class Carrier extends Robot {
                 rc.placeAnchor();
                 current_objective = getClosestHQ(rc);
                 state = CARRIER_STATE.RETURNING;
-                runCarrierReturning(rc);
+                runCarrierState(rc);
                 return;
             }
         }
         if (attempts >= Comms.getNumIslands(rc)) {
             state = CARRIER_STATE.ISLAND_SEARCH;
-            runCarrierIslandSearch(rc);
+            runCarrierState(rc);
         }
         moveTo(rc, current_objective);
     }
