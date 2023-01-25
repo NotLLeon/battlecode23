@@ -26,13 +26,15 @@ public class Carrier extends Robot {
     private static int island_objective_id = 0;
     private static int attempts = 0;
     private static int patience = 0;
-    private static final int explore_patience_limit = 35;
+    private static int explore_patience_limit = 35;
     private static final int moveToWell_patience_limit = 20;
     static final int weightFactor = (int) 1e6;
     static int stratificationFactor = 2;
 
     //Number of turns where adamantium is ignored.
     static int magic_rush_number = 50;
+    static int old_num_mana_wells = 0;
+    static int old_num_mana_wells_turn = 0;
     private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
         int[] weights = new int[num_wells];
         MapLocation[] locs = new MapLocation[num_wells];
@@ -63,18 +65,20 @@ public class Carrier extends Robot {
         //TODO: The following is inefficient and very scuffed.
 
         int[] combined_weights = new int[num_mana_wells+num_ad_wells+1];
-        combined_weights[0] = weightFactor/(int)(4*Math.pow(5,stratificationFactor)*RobotType.HEADQUARTERS.visionRadiusSquared);
+        combined_weights[0] = weightFactor/(int)(6*Math.pow(5,stratificationFactor)*RobotType.HEADQUARTERS.visionRadiusSquared);
         MapLocation[] combined_locs = new MapLocation[num_ad_wells+num_mana_wells];
 
-        if (Comms.getNumWells(rc) > 4) {
+        if (rc.getRoundNum() > magic_rush_number) {
             stratificationFactor = 1;
         }
+
+        int min_dist = 10000;
 
         for (int i = 1; i < num_mana_wells+num_ad_wells+1; i++) {
             if(i-1 < num_ad_wells) combined_locs[i-1] = Comms.getAdWell(rc, i-1);
             else combined_locs[i-1] = Comms.getManaWell(rc, i-1-num_ad_wells);
             int dist = rc.getLocation().distanceSquaredTo(combined_locs[i-1]);
-            if (dist == 0 && rc.getRoundNum() > magic_rush_number) {
+            if (dist == 0 && (rc.getRoundNum() > magic_rush_number || i-1 >= num_ad_wells)) {
                 current_objective = combined_locs[i-1];
                 state = CARRIER_STATE.COLLECTING;
                 runCarrierCollecting(rc);
@@ -82,7 +86,14 @@ public class Carrier extends Robot {
             } else if (dist == 0 && rc.getRoundNum() <= magic_rush_number) {
                 break;
             }
-            combined_weights[i] = weightFactor/(int)(Math.pow(dist,stratificationFactor));
+
+            if (dist < min_dist && i-1 >= num_ad_wells) {
+                min_dist = dist;
+            }
+            //The ternary operation here is for safety. In the cases where
+            //dist is 0 and the code actually gets here, whatever the weights are
+            //here are useless.
+            combined_weights[i] = (dist == 0) ? 1 : weightFactor/(int)(Math.pow(dist,stratificationFactor));
         }
         int index = Random.nextIndexWeighted(combined_weights);
 
@@ -91,23 +102,30 @@ public class Carrier extends Robot {
 
         double ratio = (total_resources > 0) ? total_ad/total_resources : Constants.ideal_ratio;
 
-        if (index != 0 && (rc.getRoundNum() > magic_rush_number || num_mana_wells > 0)) {
-            if (num_mana_wells > 0 && num_ad_wells > 0) {
-//                if (Random.nextBoolean()) {
-                double random = (double)Random.nextInt(weightFactor)/(double)(weightFactor);
-                if(random <= Constants.ideal_ratio*Constants.ideal_ratio/ratio && rc.getRoundNum() > magic_rush_number) {
-                    //Adamantium
-                    current_objective = random_well_distance(rc, num_ad_wells, ResourceType.ADAMANTIUM);
-                } else {
-                    //Mana
-                    current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
-                }
-            } else {
-                current_objective = combined_locs[index-1];
+        if (Math.sqrt(min_dist) > Math.max(rc.getMapWidth(), rc.getMapHeight())/2 && rc.getRoundNum() <= magic_rush_number) {
+            if (rc.getID() == 10995) {
+                System.out.println("I like to explore. " + min_dist);
             }
-            state = CARRIER_STATE.MOVE_TO_WELL;
-        } else {
             state = CARRIER_STATE.EXPLORING;
+        } else {
+            if (index != 0 && (rc.getRoundNum() > magic_rush_number || num_mana_wells > 0)) {
+                if (num_mana_wells > 0 && num_ad_wells > 0) {
+//                if (Random.nextBoolean()) {
+                    double random = (double) Random.nextInt(weightFactor) / (double) (weightFactor);
+                    if (random <= Constants.ideal_ratio * Constants.ideal_ratio / ratio && rc.getRoundNum() > magic_rush_number) {
+                        //Adamantium
+                        current_objective = random_well_distance(rc, num_ad_wells, ResourceType.ADAMANTIUM);
+                    } else {
+                        //Mana
+                        current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
+                    }
+                } else {
+                    current_objective = combined_locs[index - 1];
+                }
+                state = CARRIER_STATE.MOVE_TO_WELL;
+            } else {
+                state = CARRIER_STATE.EXPLORING;
+            }
         }
         runCarrierState(rc);
 
@@ -156,6 +174,7 @@ public class Carrier extends Robot {
 
         //Decide Initial Role, will anchor on returning.
         if (turnCount == 1) {
+            explore_patience_limit = (rc.getMapHeight() + rc.getMapWidth())/3;
             decide_role(rc);
             return;
         }
@@ -185,6 +204,10 @@ public class Carrier extends Robot {
             case ISLAND_SEARCH: runCarrierIslandSearch(rc); break;
             case ANCHORING:     runCarrierAnchoring(rc); break;
         }
+
+        if (Comms.getNumManaWells(rc) > old_num_mana_wells) {
+            old_num_mana_wells = Comms.getNumManaWells(rc);
+        }
     }
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
@@ -203,27 +226,61 @@ public class Carrier extends Robot {
         WellInfo[] wells = senseAndStoreWellLocs(rc);
         MapLocation new_well_loc = null;
 
-        for (int i = 0; i < wells.length; i++) {
-            MapLocation well_loc = wells[i].getMapLocation();
-            if (rc.getRoundNum() <= magic_rush_number) {
-                if (!Comms.knowsWell(rc, well_loc) && wells[i].getResourceType() == ResourceType.MANA) {
-                    new_well_loc = well_loc;
+        //Bandwagoning Collectors code
+
+        if (rc.getRoundNum() <= magic_rush_number) {
+            int num_mana_wells = Comms.getNumManaWells(rc);
+            if (num_mana_wells > old_num_mana_wells) {
+                old_num_mana_wells = num_mana_wells;
+                decide_role(rc);
+            } else {
+                for (int i = 0; i < wells.length; i++) {
+                    MapLocation well_loc = wells[i].getMapLocation();
+                    if (rc.getRoundNum() <= magic_rush_number) {
+                        if (!Comms.knowsWell(rc, well_loc) && wells[i].getResourceType() == ResourceType.MANA) {
+                            new_well_loc = well_loc;
+                        }
+                    } else if (!Comms.knowsWell(rc, well_loc)) {
+                        new_well_loc = well_loc;
+                        break;
+                    }
                 }
-            } else if (!Comms.knowsWell(rc, well_loc)) {
-                new_well_loc = well_loc;
-                break;
+
+                int random = (rc.getRoundNum() <= magic_rush_number) ? 0 : Random.nextInt(3);
+
+                if (new_well_loc != null && random <= 1) {
+                    //current_objective = new_well_loc;
+                    //state = CARRIER_STATE.MOVE_TO_WELL;
+                    current_objective = getClosestHQ(rc);
+                    state = CARRIER_STATE.RETURNING;
+                    patience = 0;
+                    runCarrierState(rc);
+                } else {
+                    exploreNewArea(rc);
+                }
             }
-        }
-
-        int random = (rc.getRoundNum() <= magic_rush_number) ? 0 : Random.nextInt(3);
-
-        if (new_well_loc != null && random <= 1) {
-            current_objective = new_well_loc;
-            state = CARRIER_STATE.MOVE_TO_WELL;
-            patience = 0;
-            runCarrierState(rc);
         } else {
-            exploreNewArea(rc);
+            for (int i = 0; i < wells.length; i++) {
+                MapLocation well_loc = wells[i].getMapLocation();
+                if (rc.getRoundNum() <= magic_rush_number) {
+                    if (!Comms.knowsWell(rc, well_loc) && wells[i].getResourceType() == ResourceType.MANA) {
+                        new_well_loc = well_loc;
+                    }
+                } else if (!Comms.knowsWell(rc, well_loc)) {
+                    new_well_loc = well_loc;
+                    break;
+                }
+            }
+            int random = (rc.getRoundNum() <= magic_rush_number) ? 0 : Random.nextInt(3);
+            if (new_well_loc != null && random <= 1) {
+                current_objective = new_well_loc;
+                state = CARRIER_STATE.MOVE_TO_WELL;
+                if (rc.getID() == 15585)
+                patience = 0;
+                runCarrierState(rc);
+            } else {
+                exploreNewArea(rc);
+            }
         }
 
         /*int chance = Random.nextInt(3);
@@ -291,6 +348,13 @@ public class Carrier extends Robot {
         current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
         senseAndStoreWellLocs(rc);
+
+        if (rc.getLocation().isWithinDistanceSquared(current_objective, 9)) {
+            Comms.writeWellLocs(rc, ad_well_locs, ResourceType.ADAMANTIUM);
+            Comms.writeWellLocs(rc, mn_well_locs, ResourceType.MANA);
+            Comms.writeIslandLocs(rc, island_locs);
+        }
+
         if (rc.getLocation().isAdjacentTo(current_objective)) {
 
             for(ResourceType resType: resourceTypes) {
@@ -298,10 +362,6 @@ public class Carrier extends Robot {
                     rc.transferResource(current_objective, resType, rc.getResourceAmount(resType));
                 }
             }
-
-            Comms.writeWellLocs(rc, ad_well_locs, ResourceType.ADAMANTIUM);
-            Comms.writeWellLocs(rc, mn_well_locs, ResourceType.MANA);
-            Comms.writeIslandLocs(rc, island_locs);
 
             int num_islands = Comms.getNumIslands(rc);
             int num_anchors = 0;
@@ -411,7 +471,7 @@ public class Carrier extends Robot {
     private static void runCarrierAnchoring(RobotController rc) throws GameActionException {
         rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
         int island_id = rc.senseIsland(rc.getLocation());
-        if (island_id == island_objective_id) {
+        if (island_id != -1) {
 //            rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");
             if (rc.senseAnchor(island_id) != null) {
                 int num_islands = Comms.getNumIslands(rc);
@@ -420,7 +480,7 @@ public class Carrier extends Robot {
                     current_objective = Comms.getIsland(rc, random);
                     island_objective_id = Comms.getIslandID(rc, random);
 //                    rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Already Anchored)");
-                    attempts++;
+                    attempts += (island_id == island_objective_id) ? 1 : 0;
                 }
             } else if (rc.canPlaceAnchor()) {
                 rc.placeAnchor();
