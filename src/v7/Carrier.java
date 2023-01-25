@@ -84,7 +84,7 @@ public class Carrier extends Robot {
         if (index != 0) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
 //                if (Random.nextBoolean()) {
-                if(Random.nextInt(8) <= 6) {
+                if(Random.nextInt(5) <= 2) {
                     //Mana
                     current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
                 } else {
@@ -271,7 +271,7 @@ public class Carrier extends Robot {
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
-//        current_objective = getClosestHQ(rc);
+        current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
         senseAndStoreWellLocs(rc);
         if (rc.getLocation().isAdjacentTo(current_objective)) {
