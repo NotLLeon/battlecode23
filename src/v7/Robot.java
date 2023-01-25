@@ -1,9 +1,14 @@
-package v6;
+package v7;
 
+import java.util.HashMap;
 
-import battlecode.common.*;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
 
 public abstract class Robot {
+    // public static HashMap<Direction, >
 
     public static void moveTo(RobotController rc, MapLocation dest) throws GameActionException {
         moveTo(rc, dest, false, -1);
@@ -21,13 +26,8 @@ public abstract class Robot {
         MapLocation currLoc = rc.getLocation();
         if (currLoc.isWithinDistanceSquared(center, radius)) {
             Direction opp = currLoc.directionTo(center).opposite();
-//            currLoc = currLoc.add(opp);
-//            currLoc = currLoc.add(opp);
-//            currLoc = currLoc.add(opp);
             moveTo(rc, currLoc.add(opp).add(opp).add(opp));
         } else {
-//            Direction dir = BugNav.getDir(rc, center);
-//            if ((currLoc.add(dir)).distanceSquaredTo(center) > radius) {
             int r = (int)Math.sqrt(radius) + 1;
             moveToRadius(rc, center, r*r);
 //            }
@@ -37,18 +37,41 @@ public abstract class Robot {
     private static void moveTo(RobotController rc, MapLocation dest, boolean adj, int radius) throws GameActionException {
         MapLocation curLoc = rc.getLocation();
 //        rc.setIndicatorDot(curLoc, 0, 256, 0);
-        if(!rc.isMovementReady()
+        if (!rc.isMovementReady()
                 || curLoc.equals(dest)
                 || (adj && curLoc.isAdjacentTo(dest))
-                || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) {
-            return;
-        }
+                || (radius != -1 && curLoc.distanceSquaredTo(dest) <= radius)) return;
 
-        // use BFS when possible, otherwise use BugNav until the obstacle is cleared
+//        Direction dir = BugNav.getDir(rc, dest);
         Direction dir = Direction.CENTER;
-        if(!BugNav.tracingObstacle()) dir = BFS.getDir(rc, dest);
+//        if(rc.canSenseLocation(dest)) dir = BFS.getDir(rc, dest);
         if(dir == Direction.CENTER) dir = BugNav.getDir(rc, dest);
+//        if(!rc.canMove(dir)) return;
+
+//        rc.setIndicatorDot(curLoc.add(dir), 0, 256, 0);
+//        rc.setIndicatorString(""+dir);
+//        if(rc.senseRobotAtLocation(curLoc.add(dir)) != null) {
+////            BugNav.reset();
+//            Direction [] dirs = {
+//                    dir.rotateLeft(),
+//                    dir.rotateRight(),
+//                    dir.rotateRight().rotateRight(),
+//                    dir.rotateLeft().rotateLeft(),
+//                    dir.rotateLeft().opposite(),
+//                    dir.rotateRight().opposite(),
+//                    dir.opposite()
+//            };
+////            rc.setIndicatorString("bump");
+//            for (Direction direction : dirs) {
+//                if (rc.canMove(direction)) {
+//                    rc.move(direction);
+//                    return;
+//                }
+//            }
+//        } else {
+//        rc.setIndicatorString(dir + " " + curLoc + "  " + rc.canMove(dir));
         if(dir != Direction.CENTER) rc.move(dir);
+//        }
     }
 
     static MapLocation findClosestLoc(RobotController rc, MapLocation[] locs) {
