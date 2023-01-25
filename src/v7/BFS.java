@@ -52,15 +52,30 @@ public class BFS {
 
         MapLocation curLoc = rc.getLocation();
         boolean works;
-        Direction firstDir ;
+        Direction firstDir;
         Direction curDir;
+        MapLocation loc;
 
         for (int[] dirs : detour1) {
-            MapLocation loc = curLoc;
+            loc = curLoc;
             works = true;
             firstDir = null;
             for (int r : dirs) {
                 curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+
+            loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, -r);
                 loc = loc.add(curDir);
                 if (!isMoveable(rc, loc, curDir, firstDir == null)) {
                     works = false;
@@ -72,11 +87,25 @@ public class BFS {
         }
 
         for (int[] dirs : detour2) {
-            MapLocation loc = curLoc;
+            loc = curLoc;
             works = true;
             firstDir = null;
             for (int r : dirs) {
                 curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+
+            loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, -r);
                 loc = loc.add(curDir);
                 if (!isMoveable(rc, loc, curDir, firstDir == null)) {
                     works = false;
@@ -88,11 +117,25 @@ public class BFS {
         }
 
         for (int[] dirs : detour3) {
-            MapLocation loc = curLoc;
+            loc = curLoc;
             works = true;
             firstDir = null;
             for (int r : dirs) {
                 curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+
+            loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, -r);
                 loc = loc.add(curDir);
                 if (!isMoveable(rc, loc, curDir, firstDir == null)) {
                     works = false;
@@ -104,11 +147,25 @@ public class BFS {
         }
 
         for (int[] dirs : detour4) {
-            MapLocation loc = curLoc;
+            loc = curLoc;
             works = true;
             firstDir = null;
             for (int r : dirs) {
                 curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+
+            loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, -r);
                 loc = loc.add(curDir);
                 if (!isMoveable(rc, loc, curDir, firstDir == null)) {
                     works = false;
@@ -120,7 +177,7 @@ public class BFS {
         }
 
         for (int[] dirs : detour5) {
-            MapLocation loc = curLoc;
+            loc = curLoc;
             works = true;
             firstDir = null;
             for (int r : dirs) {
@@ -133,14 +190,42 @@ public class BFS {
                 if (firstDir == null) firstDir = curDir;
             }
             if (works) return firstDir;
+
+            loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, -r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
         }
 
         for (int[] dirs : detour6) {
-            MapLocation loc = curLoc;
+            loc = curLoc;
             works = true;
             firstDir = null;
             for (int r : dirs) {
                 curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+
+            loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, -r);
                 loc = loc.add(curDir);
                 if (!isMoveable(rc, loc, curDir, firstDir == null)) {
                     works = false;
