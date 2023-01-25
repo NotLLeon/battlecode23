@@ -58,12 +58,28 @@ public class Comms {
         rc.writeSharedArray(Constants.IDX_TOTAL_AD, total_ad);
     }
 
+    public static void setAverageManaRevenue(RobotController rc, int mana_profit) throws GameActionException {
+        rc.writeSharedArray(Constants.IDX_AVERAGE_MANA_REVENUE, mana_profit);
+    }
+
+    public static void setAverageAdRevenue(RobotController rc, int ad_profit) throws GameActionException {
+        rc.writeSharedArray(Constants.IDX_AVERAGE_AD_REVENUE, ad_profit);
+    }
+
     public static int getTotalMana(RobotController rc) throws GameActionException{
         return rc.readSharedArray(Constants.IDX_TOTAL_MANA);
     }
 
     public static int getTotalAd(RobotController rc) throws GameActionException {
         return rc.readSharedArray(Constants.IDX_TOTAL_AD);
+    }
+
+    public static int getAverageManaRevenue(RobotController rc) throws GameActionException {
+       return rc.readSharedArray(Constants.IDX_AVERAGE_MANA_REVENUE);
+    }
+
+    public static int getAverageAdRevenue(RobotController rc) throws GameActionException {
+        return rc.readSharedArray(Constants.IDX_AVERAGE_AD_REVENUE);
     }
 
     // *****************************************************************************************************************
