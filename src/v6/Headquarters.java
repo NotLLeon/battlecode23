@@ -45,6 +45,19 @@ public class Headquarters extends Robot {
 //            Symmetry[] possibleSyms = getSymmetry(rc);
         }
 
+        //Putting the check here just in case.
+        if (Comms.getNumHQs(rc) > 0) {
+            if (Comms.getHQs(rc)[0].equals(curLoc)) {
+                Comms.setTotalAd(rc,rc.getResourceAmount(ResourceType.ADAMANTIUM));
+                Comms.setTotalMana(rc,rc.getResourceAmount(ResourceType.MANA));
+            } else {
+                int old_ad = Comms.getTotalAd(rc);
+                int old_mana = Comms.getTotalMana(rc);
+                Comms.setTotalAd(rc, old_ad + rc.getResourceAmount(ResourceType.ADAMANTIUM));
+                Comms.setTotalMana(rc, old_mana + rc.getResourceAmount(ResourceType.MANA));
+            }
+        }
+
 //        findSpawnableLocs(rc);
 //        int spawnInd = 0;
 //        int spawnSpaces = spawnLocs.length;
@@ -56,18 +69,15 @@ public class Headquarters extends Robot {
 //             MapLocation island = Comms.getIsland(rc, i);
 //         }
         int currRobotCount = rc.getRobotCount();
-        RobotInfo[] nearby_enemies = rc.senseNearbyRobots(16, rc.getTeam().opponent());
+        RobotInfo[] nearby_robots = rc.senseNearbyRobots();
         int enemyLaunchers = 0;
-        for (int i = 0; i < nearby_enemies.length; i++) {
-            if (nearby_enemies[i].type == RobotType.LAUNCHER) {
+        for(RobotInfo robot : nearby_robots) {
+            if(robot.getType() == RobotType.LAUNCHER && robot.getTeam() != rc.getTeam()) {
                 enemyLaunchers++;
             }
         }
-        if (enemyLaunchers > 0) {
-            Comms.setDistressSignal(rc, true);
-        } else {
-            Comms.setDistressSignal(rc, false);
-        }
+
+        Comms.setDistressSignal(rc, enemyLaunchers > 0);
 
         for (int i = 0; i < Comms.getNumAdWells(rc); i++) {
             rc.setIndicatorDot(Comms.getAdWell(rc, i), 255,0,0);
