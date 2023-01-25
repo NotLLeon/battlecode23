@@ -36,7 +36,7 @@ public abstract class Robot {
 
     private static void moveTo(RobotController rc, MapLocation dest, boolean adj, int radius) throws GameActionException {
         MapLocation curLoc = rc.getLocation();
-        rc.setIndicatorDot(curLoc, 0, 256, 0);
+//        rc.setIndicatorDot(curLoc, 0, 256, 0);
         if(!rc.isMovementReady()
                 || curLoc.equals(dest)
                 || (adj && curLoc.isAdjacentTo(dest))
@@ -44,7 +44,7 @@ public abstract class Robot {
             return;
         }
 
-        // TODO: use BFS when possible, otherwise use BugNav until the obstacle is cleared
+        // use BFS when possible, otherwise use BugNav until the obstacle is cleared
         Direction dir = Direction.CENTER;
         if(!BugNav.tracingObstacle()) dir = BFS.getDir(rc, dest);
         if(dir == Direction.CENTER) dir = BugNav.getDir(rc, dest);
