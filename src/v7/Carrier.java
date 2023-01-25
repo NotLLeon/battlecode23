@@ -32,7 +32,7 @@ public class Carrier extends Robot {
     static int stratificationFactor = 2;
 
     //Number of turns where adamantium is ignored.
-    static int magic_rush_number = 20;
+    static int magic_rush_number = 50;
     private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
         int[] weights = new int[num_wells];
         MapLocation[] locs = new MapLocation[num_wells];
@@ -74,11 +74,13 @@ public class Carrier extends Robot {
             if(i-1 < num_ad_wells) combined_locs[i-1] = Comms.getAdWell(rc, i-1);
             else combined_locs[i-1] = Comms.getManaWell(rc, i-1-num_ad_wells);
             int dist = rc.getLocation().distanceSquaredTo(combined_locs[i-1]);
-            if (dist == 0) {
+            if (dist == 0 && rc.getRoundNum() > magic_rush_number) {
                 current_objective = combined_locs[i-1];
                 state = CARRIER_STATE.COLLECTING;
                 runCarrierCollecting(rc);
                 return;
+            } else if (dist == 0 && rc.getRoundNum() <= magic_rush_number) {
+                break;
             }
             combined_weights[i] = weightFactor/(int)(Math.pow(dist,stratificationFactor));
         }
