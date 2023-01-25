@@ -31,6 +31,6 @@ public class Constants {
     static int MAX_ISLANDS_STORED=20;
 
     //Resource Management
-    static double ideal_ratio = 0.4; //Ideal quotient of Ad/(Ad+Mana)
+    static double ideal_ratio = 0.3; //Ideal quotient of Ad/(Ad+Mana)
 
 }

@@ -84,8 +84,8 @@ public class Carrier extends Robot {
         }
         int index = Random.nextIndexWeighted(combined_weights);
 
-        double total_ad = (double)Comms.getAverageAdRevenue(rc);
-        double total_resources = (double)(Comms.getAverageAdRevenue(rc)+ Comms.getAverageManaRevenue(rc));
+        double total_ad = Comms.getTotalAd(rc);
+        double total_resources = Comms.getTotalAd(rc) + Comms.getTotalMana(rc);
 
         double ratio = (total_resources > 0) ? total_ad/total_resources : Constants.ideal_ratio;
 

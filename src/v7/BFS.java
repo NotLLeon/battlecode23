@@ -206,6 +206,8 @@ public class BFS {
             if (works) return firstDir;
         }
 
+        if(Clock.getBytecodesLeft() < 2000) return Direction.CENTER;
+
         for (int[] dirs : detour6) {
             loc = curLoc;
             works = true;
@@ -254,7 +256,7 @@ public class BFS {
     private static boolean isMoveable(RobotController rc, MapLocation loc, Direction dir, boolean firstMove) throws GameActionException {
         if(!rc.canSenseLocation(loc)) return false;
         MapInfo info = rc.senseMapInfo(loc);
-        return rc.onTheMap(loc) && info.isPassable()
+        return info.isPassable()
                 && (!firstMove || !rc.canSenseRobotAtLocation(loc))
                 && (goodCurrent(info.getCurrentDirection(), dir));
     }
