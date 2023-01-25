@@ -17,7 +17,7 @@ public class Launcher extends Robot {
         GOTO_LOCATION, PATROL, DEFEND
     };
 
-    static LAUNCHER_STATE state = LAUNCHER_STATE.GOTO_LOCATION;
+    static LAUNCHER_STATE state = LAUNCHER_STATE.PATROL;
 
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
         if(turnCount == 1) {
@@ -61,19 +61,20 @@ public class Launcher extends Robot {
         if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
             state = LAUNCHER_STATE.DEFEND;
             defendPoint = distress[Random.nextInt(distress.length)];
-        } else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
-            state = LAUNCHER_STATE.GOTO_LOCATION;
-        } else if (state == LAUNCHER_STATE.PATROL && numLaunchers < 2) {
-            state = LAUNCHER_STATE.GOTO_LOCATION;
-        }
+        } 
+        // else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
+        //     state = LAUNCHER_STATE.GOTO_LOCATION;
+        // } else if (state == LAUNCHER_STATE.PATROL && numLaunchers < 2) {
+        //     state = LAUNCHER_STATE.GOTO_LOCATION;
+        // }
 
         switch (state) {
-            case GOTO_LOCATION:
-                rc.setIndicatorString("GOTO_LOCATION: " + meet);
-                moveToOutsideRadius(rc, meet, 0);
-//                rc.setIndicatorString("NUMLAUNCHERS: " + numLaunchers + " ADJLAUNCH: " + adjLaunchers);
-                if (numLaunchers >= 2 && adjLaunchers > 1) state = LAUNCHER_STATE.PATROL;
-                break;
+//             case GOTO_LOCATION:
+//                 rc.setIndicatorString("GOTO_LOCATION: " + meet);
+//                 moveToOutsideRadius(rc, meet, 0);
+// //                rc.setIndicatorString("NUMLAUNCHERS: " + numLaunchers + " ADJLAUNCH: " + adjLaunchers);
+//                 if (numLaunchers >= 2 && adjLaunchers > 1) state = LAUNCHER_STATE.PATROL;
+//                 break;
             case DEFEND:
                 moveToRadius(rc, defendPoint, 3);
             break;
@@ -82,14 +83,14 @@ public class Launcher extends Robot {
 //                rc.setIndicatorString("PATROL: " + targets[targetInd]);
                 if(!onTarget){
                     MapLocation curTarget = targets[targetInd];
-                    moveToOutsideRadius(rc, curTarget, 14);
+                    moveToOutsideRadius(rc, curTarget, 10);
                     if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
                         if(!canSeeHq(rc)) nextTarget();
                         else onTarget = true;
                     } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
                         roundsNearTarget++;
                     }
-                    if(!isReachable(rc, curTarget) || roundsNearTarget > 5) {
+                    if(!isReachable(rc, curTarget) || roundsNearTarget > 10) {
                         nextTarget();
                     }
                 }
