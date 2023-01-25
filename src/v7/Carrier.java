@@ -103,9 +103,6 @@ public class Carrier extends Robot {
         double ratio = (total_resources > 0) ? total_ad/total_resources : Constants.ideal_ratio;
 
         if (Math.sqrt(min_dist) > Math.max(rc.getMapWidth(), rc.getMapHeight())/2 && rc.getRoundNum() <= magic_rush_number) {
-            if (rc.getID() == 10995) {
-                System.out.println("I like to explore. " + min_dist);
-            }
             state = CARRIER_STATE.EXPLORING;
         } else {
             if (index != 0 && (rc.getRoundNum() > magic_rush_number || num_mana_wells > 0)) {
@@ -275,7 +272,6 @@ public class Carrier extends Robot {
             if (new_well_loc != null && random <= 1) {
                 current_objective = new_well_loc;
                 state = CARRIER_STATE.MOVE_TO_WELL;
-                if (rc.getID() == 15585)
                 patience = 0;
                 runCarrierState(rc);
             } else {
