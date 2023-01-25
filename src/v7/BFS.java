@@ -180,11 +180,9 @@ public class BFS {
                 || current == dir.rotateLeft()
                 || current == dir.rotateRight();
     }
-//    private static int getVisionRadius(RobotController rc) throws GameActionException {
-//        MapLocation loc = rc.getLocation();
-//        if(rc.senseCloud(loc)) return GameConstants.CLOUD_VISION_RADIUS_SQUARED;
-//        return rc.getType().visionRadiusSquared;
-//    }
-
-
+    // private static int getVisionRadius(RobotController rc) throws GameActionException {
+    //     MapLocation loc = rc.getLocation();
+    //     if(rc.senseCloud(loc)) return GameConstants.CLOUD_VISION_RADIUS_SQUARED;
+    //     return rc.getType().visionRadiusSquared;
+    // }
 }

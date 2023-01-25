@@ -16,7 +16,6 @@ public abstract class Robot {
     public static void moveToRadius(RobotController rc, MapLocation dest, int radius) throws GameActionException {
         moveTo(rc, dest, false, radius);
     }
-
     public static void moveToOutsideRadius(RobotController rc, MapLocation center, int radius) throws GameActionException {
         MapLocation currLoc = rc.getLocation();
         if (currLoc.isWithinDistanceSquared(center, radius)) {

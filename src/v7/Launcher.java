@@ -235,7 +235,18 @@ public class Launcher extends Robot {
         if (t2 > t1) {
             MapLocation temp = targets[0];
             targets[0] = targets[1];
-            targets[1] = temp;
+            targets[1] = targets[2];
+            targets[2] = temp;
+        } else {
+            MapLocation temp = targets[1];
+            targets[1] = targets[2];
+            targets[2] = temp;
+        }
+
+        if (Hqs.length == 1 && Math.abs(originHq.x - mapW/2) > mapW*3/8 && Math.abs(originHq.y - mapH/2) > mapH*3/8) {
+            MapLocation temp = targets[1];
+            targets[1] = targets[0];
+            targets[0] = temp;
         }
     }
 
