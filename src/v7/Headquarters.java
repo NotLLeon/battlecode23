@@ -46,7 +46,7 @@ public class Headquarters extends Robot {
 
             WellInfo[] wells = rc.senseNearbyWells();
             for (WellInfo well : wells) {
-                if(well.getResourceType() == ResourceType.ADAMANTIUM) closeWellLoc = well.getMapLocation();
+                if(well.getResourceType() == ResourceType.MANA) closeWellLoc = well.getMapLocation();
                 Comms.writeWellLoc(rc, well);
             }
 
