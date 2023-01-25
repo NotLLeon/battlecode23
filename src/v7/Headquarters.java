@@ -2,23 +2,15 @@ package v7;
 
 import battlecode.common.*;
 
-import java.util.LinkedList;
 
 public class Headquarters extends Robot {
 
-    static int index = 0;
     static int hqCount = 0;
     // static int amplifiers = 5;
     static boolean smallMap = false;
     static MapLocation closeEnemyHqLoc = null;
     static MapLocation closeWellLoc = null;
     static boolean tryingtoBuildAnchor = false;
-
-    static LinkedList<Integer> prev_mana = new LinkedList<Integer>();
-    static LinkedList<Integer> prev_ad = new LinkedList<Integer>();
-    static int prev_mana_sum = 0;
-    static int prev_ad_sum = 0;
-    static int num_rounds_to_average = 60;
 
     public enum Symmetry {
         ROTATIONAL,
@@ -109,7 +101,7 @@ public class Headquarters extends Robot {
             buildInDir(rc, RobotType.AMPLIFIER, dirToCent);
         }
         if (currRobotCount > 20*hqCount
-                && turnCount >= 1000
+                && turnCount >= 750
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
                 && turnCount % 150 == 0) {
             tryingtoBuildAnchor = true;

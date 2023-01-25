@@ -10,232 +10,732 @@ public class BFS {
 
     static Direction bestDir;
 
-    // Assumes hasDir is true
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
         MapLocation curLoc = rc.getLocation();
         bestDir = curLoc.directionTo(dest);
         return getDetourDir(rc);
     }
 
-    // TODO: ADD MORE
-    /**
-     * 0  - optimal direction
-     * n  - optimal direction rotated right n times
-     * -n - optimal direction rotated left n times
-     */
-    private static final int[][] detour1 = {{0}};
-    private static final int[][] detour2 = {{1, -1}};
-    private static final int[][] detour3 = {{1, 0, -1}, {-2, 0, 2}};
-    private static final int[][] detour4 = {
-            {1, 0, 0, -1},
-            {1, 1, -1, -1},
-            {2, 0, 0, -2},
-    };
-    private static final int[][] detour5 = {
-            {1, 0, 0, 0, -1},
-            {2, 0, 0, 0, -2},
-            {1, 1, 0, -1, -1},
-            {2, 2, 0, -2, -2},
-            {3, 1, 0, -1, -2},
-            {3, 1, 0, -1, -1},
-    };
-
-    private static final int[][] detour6 = {
-            {1, 0, 0, 0, 0, -1},
-            {2, 0, 0, 0, 0, -2},
-            {1, 1, 0, 0, -1, -1},
-            {2, 2, 0, 0, -2, -2},
-            {1, 1, 1, -1, -1, -1},
-    };
-
     private static Direction getDetourDir(RobotController rc) throws GameActionException {
 
         MapLocation curLoc = rc.getLocation();
-        boolean works;
         Direction firstDir;
         Direction curDir;
         MapLocation loc;
 
-        for (int[] dirs : detour1) {
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
-            }
-            if (works) return firstDir;
-
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, -r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
-            }
-            if (works) return firstDir;
+        curDir = rotateInt(bestDir, 0);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            return firstDir;
         }
-
-        for (int[] dirs : detour2) {
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                return firstDir;
             }
-            if (works) return firstDir;
-
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, -r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
-            }
-            if (works) return firstDir;
         }
-
-        for (int[] dirs : detour3) {
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                return firstDir;
             }
-            if (works) return firstDir;
-
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, -r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
-            }
-            if (works) return firstDir;
         }
-
-        for (int[] dirs : detour4) {
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, r);
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, -1);
                 loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
+                if(isMoveable(rc, loc, curDir, false)){
+                    return firstDir;
                 }
-                if (firstDir == null) firstDir = curDir;
             }
-            if (works) return firstDir;
-
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, -r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
-            }
-            if (works) return firstDir;
         }
-
-        for (int[] dirs : detour5) {
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, r);
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 1);
                 loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
+                if(isMoveable(rc, loc, curDir, false)){
+                    return firstDir;
                 }
-                if (firstDir == null) firstDir = curDir;
             }
-            if (works) return firstDir;
-
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, -r);
-                loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
-                }
-                if (firstDir == null) firstDir = curDir;
-            }
-            if (works) return firstDir;
         }
-
-        if(Clock.getBytecodesLeft() < 2000) return Direction.CENTER;
-
-        for (int[] dirs : detour6) {
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, r);
+        curDir = rotateInt(bestDir, -2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 2);
                 loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
+                if(isMoveable(rc, loc, curDir, false)){
+                    return firstDir;
                 }
-                if (firstDir == null) firstDir = curDir;
             }
-            if (works) return firstDir;
-
-            loc = curLoc;
-            works = true;
-            firstDir = null;
-            for (int r : dirs) {
-                curDir = rotateInt(bestDir, -r);
+        }
+        curDir = rotateInt(bestDir, 2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, -2);
                 loc = loc.add(curDir);
-                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
-                    works = false;
-                    break;
+                if(isMoveable(rc, loc, curDir, false)){
+                    return firstDir;
                 }
-                if (firstDir == null) firstDir = curDir;
             }
-            if (works) return firstDir;
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        return firstDir;
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        return firstDir;
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, -1);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        return firstDir;
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 1);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        return firstDir;
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -2);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        return firstDir;
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 2);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        return firstDir;
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 2);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -2);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -2);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 2);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 3);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -3);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 3);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -3);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            return firstDir;
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 0);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, -1);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 0);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, 1);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 0);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, -2);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 0);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 0);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, 2);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, -1);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, 1);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 2);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, -2);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -2);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -2);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 0);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 0);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 2);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, 2);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, 1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, 1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, 1);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, -1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, -1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, -1);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        curDir = rotateInt(bestDir, -1);
+        firstDir = curDir;
+        loc = curLoc.add(curDir);
+        if(isMoveable(rc, loc, curDir, true)){
+            curDir = rotateInt(bestDir, -1);
+            loc = loc.add(curDir);
+            if(isMoveable(rc, loc, curDir, false)){
+                curDir = rotateInt(bestDir, -1);
+                loc = loc.add(curDir);
+                if(isMoveable(rc, loc, curDir, false)){
+                    curDir = rotateInt(bestDir, 1);
+                    loc = loc.add(curDir);
+                    if(isMoveable(rc, loc, curDir, false)){
+                        curDir = rotateInt(bestDir, 1);
+                        loc = loc.add(curDir);
+                        if(isMoveable(rc, loc, curDir, false)){
+                            curDir = rotateInt(bestDir, 1);
+                            loc = loc.add(curDir);
+                            if(isMoveable(rc, loc, curDir, false)){
+                                return firstDir;
+                            }
+                        }
+                    }
+                }
+            }
         }
         return Direction.CENTER;
     }
