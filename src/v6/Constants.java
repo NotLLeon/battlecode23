@@ -20,6 +20,9 @@ public class Constants {
     static int IDX_TOTAL_MANA = 58;
     static int IDX_TOTAL_AD = 57;
 
+    static int IDX_AVERAGE_MANA_REVENUE = 56;
+    static int IDX_AVERAGE_AD_REVENUE = 55;
+
     //Temporary
     static int MAX_WELLS_STORED=20;
     static int MAX_AD_WELLS_STORED = 10;
