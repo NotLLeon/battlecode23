@@ -30,6 +30,9 @@ public class Carrier extends Robot {
     private static final int moveToWell_patience_limit = 20;
     static final int weightFactor = (int) 1e6;
     static int stratificationFactor = 2;
+
+    //Number of turns where adamantium is ignored.
+    static int magic_rush_number = 20;
     private static MapLocation random_well_distance(RobotController rc, int num_wells, ResourceType type) throws GameActionException{
         int[] weights = new int[num_wells];
         MapLocation[] locs = new MapLocation[num_wells];
@@ -81,15 +84,21 @@ public class Carrier extends Robot {
         }
         int index = Random.nextIndexWeighted(combined_weights);
 
-        if (index != 0) {
+        double total_ad = (double)Comms.getAverageAdRevenue(rc);
+        double total_resources = (double)(Comms.getAverageAdRevenue(rc)+ Comms.getAverageManaRevenue(rc));
+
+        double ratio = (total_resources > 0) ? total_ad/total_resources : Constants.ideal_ratio;
+
+        if (index != 0 && (rc.getRoundNum() > magic_rush_number || num_mana_wells > 0)) {
             if (num_mana_wells > 0 && num_ad_wells > 0) {
 //                if (Random.nextBoolean()) {
-                if(Random.nextInt(5) <= 2) {
-                    //Mana
-                    current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
-                } else {
+                double random = (double)Random.nextInt(weightFactor)/(double)(weightFactor);
+                if(random <= Constants.ideal_ratio*Constants.ideal_ratio/ratio && rc.getRoundNum() > magic_rush_number) {
                     //Adamantium
                     current_objective = random_well_distance(rc, num_ad_wells, ResourceType.ADAMANTIUM);
+                } else {
+                    //Mana
+                    current_objective = random_well_distance(rc, num_mana_wells, ResourceType.MANA);
                 }
             } else {
                 current_objective = combined_locs[index-1];
@@ -178,7 +187,7 @@ public class Carrier extends Robot {
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
         // TODO: rewrite
-//        rc.setIndicatorString("EXPLORING");
+        rc.setIndicatorString("EXPLORING");
 
         int[] island_ids = rc.senseNearbyIslands();
 
@@ -194,13 +203,19 @@ public class Carrier extends Robot {
 
         for (int i = 0; i < wells.length; i++) {
             MapLocation well_loc = wells[i].getMapLocation();
-            if (!Comms.knowsWell(rc, well_loc)) {
+            if (rc.getRoundNum() <= magic_rush_number) {
+                if (!Comms.knowsWell(rc, well_loc) && wells[i].getResourceType() == ResourceType.MANA) {
+                    new_well_loc = well_loc;
+                }
+            } else if (!Comms.knowsWell(rc, well_loc)) {
                 new_well_loc = well_loc;
                 break;
             }
         }
 
-        if (new_well_loc != null && Random.nextInt(3) <= 1) {
+        int random = (rc.getRoundNum() <= magic_rush_number) ? 0 : Random.nextInt(3);
+
+        if (new_well_loc != null && random <= 1) {
             current_objective = new_well_loc;
             state = CARRIER_STATE.MOVE_TO_WELL;
             patience = 0;
@@ -229,7 +244,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierMoveToWell(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
+        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
         MapLocation curLoc = rc.getLocation();
         if (!curLoc.isAdjacentTo(current_objective)) {
             moveTo(rc, current_objective);
@@ -270,7 +285,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
+        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
         current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
         senseAndStoreWellLocs(rc);
@@ -331,7 +346,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierCollecting(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("COLLECTING");
+        //rc.setIndicatorString("COLLECTING");
 
         boolean ret = true;
         while (rc.canCollectResource(current_objective, -1)
@@ -355,7 +370,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierIslandSearch(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("ISLAND SEARCH");
+        rc.setIndicatorString("ISLAND SEARCH");
 
         if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
             senseAndStoreWellLocs(rc);
@@ -392,7 +407,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierAnchoring(RobotController rc) throws GameActionException {
-//        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
+        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
         int island_id = rc.senseIsland(rc.getLocation());
         if (island_id == island_objective_id) {
 //            rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");

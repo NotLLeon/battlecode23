@@ -2,84 +2,176 @@ package v7;
 
 import battlecode.common.*;
 
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.LinkedList;
 
+/**
+ * "BFS"
+ */
 public class BFS {
 
-    static MapLocation[] path;
+    static Direction bestDir;
 
     // Assumes hasDir is true
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
-        boolean works = getPath(rc, dest);
-        if(!works) return Direction.CENTER;
-        return path[0].directionTo(path[1]);
+        MapLocation curLoc = rc.getLocation();
+        bestDir = curLoc.directionTo(dest);
+        return getDetourDir(rc);
     }
 
-    public static boolean getPath(RobotController rc, MapLocation dest) throws GameActionException {
-//        int visionRadius = Math.min(16, getVisionRadius(rc));
-//        HashSet<MapLocation> opts = new HashSet<MapLocation>();
-        if(!rc.canSenseLocation(dest)) return false;
+    // TODO: ADD MORE
+    /**
+     * 0  - optimal direction
+     * n  - optimal direction rotated right n times
+     * -n - optimal direction rotated left n times
+     */
+    private static final int[][] detour1 = {{0}};
+    private static final int[][] detour2 = {{1, -1}};
+    private static final int[][] detour3 = {{1, 0, -1}, {-2, 0, 2}};
+    private static final int[][] detour4 = {
+            {1, 0, 0, -1},
+            {1, 1, -1, -1},
+            {2, 0, 0, -2},
+    };
+    private static final int[][] detour5 = {
+            {1, 0, 0, 0, -1},
+            {2, 0, 0, 0, -2},
+            {1, 1, 0, -1, -1},
+            {2, 2, 0, -2, -2},
+            {3, 1, 0, -1, -2},
+            {3, 1, 0, -1, -1},
+    };
 
-        HashMap<MapLocation, MapLocation> prev = new HashMap<MapLocation, MapLocation>();
-        LinkedList<MapLocation> q = new LinkedList<MapLocation>();
+    private static final int[][] detour6 = {
+            {1, 0, 0, 0, 0, -1},
+            {2, 0, 0, 0, 0, -2},
+            {1, 1, 0, 0, -1, -1},
+            {2, 2, 0, 0, -2, -2},
+            {1, 1, 1, -1, -1, -1},
+    };
+
+    private static Direction getDetourDir(RobotController rc) throws GameActionException {
+
         MapLocation curLoc = rc.getLocation();
-        Direction dirToDest = curLoc.directionTo(dest);
-        Direction[] searchDirs = {
-                dirToDest,
-                dirToDest.rotateRight(),
-                dirToDest.rotateLeft(),
-                dirToDest.rotateRight().rotateRight(),
-                dirToDest.rotateLeft().rotateLeft()
-        };
-        q.add(curLoc);
-        prev.put(curLoc, null);
-//        MapLocation loc = curLoc;
-//        for(int i = 0; i*i < visionRadius; ++i) {
-//            loc = loc.add(loc.directionTo(dest));
-//            opts.add(loc);
-//        }
+        boolean works;
+        Direction firstDir ;
+        Direction curDir;
 
-        MapLocation best = null;
-        boolean first = true;
-        loop1:
-        while(!q.isEmpty()) {
-            MapLocation cur = q.poll();
-            for(Direction searchDir : searchDirs) {
-                MapLocation nextLoc = cur.add(searchDir);
-                MapInfo info = rc.senseMapInfo(nextLoc);
-                if(rc.canSenseLocation(nextLoc)
-                        && (!first || rc.canMove(searchDir))
-                        && rc.onTheMap(nextLoc)
-                        && info.isPassable()
-                        && goodCurrent(info.getCurrentDirection(), searchDir)
-                        && !prev.containsKey(nextLoc)) {
-                    prev.put(nextLoc, cur);
-                    if(dest.equals(nextLoc)) {
-                        best = nextLoc;
-                        break loop1;
-                    }
-//                    if(opts.contains(nextLoc)) {
-//                        best = nextLoc;
-//                        break loop1;
-//                    }
-                    q.add(nextLoc);
+        for (int[] dirs : detour1) {
+            MapLocation loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
                 }
+                if (firstDir == null) firstDir = curDir;
             }
-            first = false;
+            if (works) return firstDir;
         }
-        if(best == null) return false;
-        LinkedList<MapLocation> prevs = new LinkedList<>();
-        MapLocation pp = best;
-        while(pp != null) {
-            prevs.addFirst(pp);
-            pp = prev.get(pp);
+
+        for (int[] dirs : detour2) {
+            MapLocation loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
         }
-        int size = prevs.size();
-        path = prevs.toArray(new MapLocation[size]);
-//        rc.setIndicatorString(Arrays.toString(path));
-        return true;
+
+        for (int[] dirs : detour3) {
+            MapLocation loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+        }
+
+        for (int[] dirs : detour4) {
+            MapLocation loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+        }
+
+        for (int[] dirs : detour5) {
+            MapLocation loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+        }
+
+        for (int[] dirs : detour6) {
+            MapLocation loc = curLoc;
+            works = true;
+            firstDir = null;
+            for (int r : dirs) {
+                curDir = rotateInt(bestDir, r);
+                loc = loc.add(curDir);
+                if (!isMoveable(rc, loc, curDir, firstDir == null)) {
+                    works = false;
+                    break;
+                }
+                if (firstDir == null) firstDir = curDir;
+            }
+            if (works) return firstDir;
+        }
+        return Direction.CENTER;
+    }
+
+    private static Direction rotateInt(Direction dir, int rotate) {
+        switch(rotate) {
+            case 0: return dir;
+            case 1: return dir.rotateRight();
+            case -1: return dir.rotateLeft();
+            case 2: return dir.rotateRight().rotateRight();
+            case -2: return dir.rotateLeft().rotateLeft();
+            case 3: return dir.rotateLeft().opposite();
+            case -3: return dir.rotateRight().opposite();
+            default: return dir.opposite();
+        }
+    }
+
+    private static boolean isMoveable(RobotController rc, MapLocation loc, Direction dir, boolean firstMove) throws GameActionException {
+        if(!rc.canSenseLocation(loc)) return false;
+        MapInfo info = rc.senseMapInfo(loc);
+        return rc.onTheMap(loc) && info.isPassable()
+                && (!firstMove || !rc.canSenseRobotAtLocation(loc))
+                && (goodCurrent(info.getCurrentDirection(), dir));
     }
 
     private static boolean goodCurrent(Direction current, Direction dir) {

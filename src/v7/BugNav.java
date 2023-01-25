@@ -13,10 +13,14 @@ public class BugNav {
     private static Direction traceDir = null;
     private static MapLocation collisionLoc = null;
     private static boolean isReachable = true;
-//    private static MapLocation assumedLoc = null;
+    //    private static MapLocation assumedLoc = null;
     private final static int numPastLocs = 15;
     private static MapLocation[] pastLocs = new MapLocation[numPastLocs];
     private static int locIndex = -1;
+
+    public static boolean tracingObstacle() {
+        return obstacle;
+    }
 
     public static void reset() {
         pastLocs = new MapLocation[numPastLocs];

@@ -17,6 +17,11 @@ public class Constants {
     static int IDX_NUM_AD_WELLS = 62;
     static int IDX_NUM_ISLANDS = 60;
     static int IDX_DISTRESS_SIGNAL = 59;
+    static int IDX_TOTAL_MANA = 58;
+    static int IDX_TOTAL_AD = 57;
+
+    static int IDX_AVERAGE_MANA_REVENUE = 56;
+    static int IDX_AVERAGE_AD_REVENUE = 55;
 
     //Temporary
     static int MAX_WELLS_STORED=20;
@@ -24,5 +29,8 @@ public class Constants {
     static int MAX_MANA_WELLS_STORED = 10;
     static int MAX_HQS_STORED=4;
     static int MAX_ISLANDS_STORED=20;
+
+    //Resource Management
+    static double ideal_ratio = 0.4; //Ideal quotient of Ad/(Ad+Mana)
 
 }
