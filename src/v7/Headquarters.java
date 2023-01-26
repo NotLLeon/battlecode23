@@ -10,7 +10,10 @@ public class Headquarters extends Robot {
     static boolean smallMap = false;
     static MapLocation closeEnemyHqLoc = null;
     static MapLocation closeWellLoc = null;
+    static boolean tryingToBuildAmp = false;
     static boolean tryingtoBuildAnchor = false;
+    static int saveMn = 0;
+    static int saveAd = 0;
 
     public enum Symmetry {
         ROTATIONAL,
@@ -42,7 +45,7 @@ public class Headquarters extends Robot {
             }
         }
 //        else if (turnCount == 2) {
-            // unused for now
+        // unused for now
 //            Symmetry[] possibleSyms = getSymmetry(rc);
 //        }
 
@@ -91,54 +94,42 @@ public class Headquarters extends Robot {
         }
         Direction dirToCent = curLoc.directionTo(new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2));
 
-        // TODO: rewrite
         if (currRobotCount > 20*hqCount
                 && turnCount >= 750
 //                && spawnInd < spawnSpaces
 //                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd])
                 && turnCount % 100 == 0) {
 //            rc.buildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd++]);
-            buildInDir(rc, RobotType.AMPLIFIER, dirToCent);
+            tryingToBuildAmp = true;
+            saveAd += RobotType.AMPLIFIER.buildCostAdamantium;
+            saveMn += RobotType.AMPLIFIER.buildCostMana;
         }
+
         if (currRobotCount > 20*hqCount
                 && turnCount >= 750
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
                 && turnCount % 150 == 0) {
             tryingtoBuildAnchor = true;
+            saveAd += Anchor.STANDARD.adamantiumCost;
+            saveMn += Anchor.STANDARD.manaCost;
+        }
+
+        if(tryingToBuildAmp && buildInDir(rc, RobotType.AMPLIFIER, dirToCent)) {
+            tryingToBuildAmp = false;
+            saveAd -= RobotType.AMPLIFIER.buildCostAdamantium;
+            saveMn -= RobotType.AMPLIFIER.buildCostMana;
         }
 
         if(tryingtoBuildAnchor && rc.canBuildAnchor(Anchor.STANDARD)) {
             tryingtoBuildAnchor = false;
+            saveAd -= Anchor.STANDARD.adamantiumCost;
+            saveMn -= Anchor.STANDARD.manaCost;
             rc.buildAnchor(Anchor.STANDARD);
         }
 
-        if(tryingtoBuildAnchor || currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
+        if(currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
 
-
-        int weight = 2;
-//        if(turnCount < 250) weight = 4;
-        RobotType tryFirst = null;
-        RobotType trySecond = null;
-        boolean spawnCarrierFirst = turnCount != 1 && Random.nextBoolean();
-//
-//        if((turnCount > 3 && Random.nextInt(weight) == 0)
-//                || (turnCount <= 3 && !smallMap && closeEnemyHqLoc == null)) {
-        if(spawnCarrierFirst) {
-            tryFirst = RobotType.CARRIER;
-            trySecond = RobotType.LAUNCHER;
-        } else {
-            tryFirst = RobotType.LAUNCHER;
-            trySecond = RobotType.CARRIER;
-        }
-//        while(spawnInd < spawnSpaces && rc.canBuildRobot(tryFirst, spawnLocs[spawnInd])) {
-//            rc.buildRobot(tryFirst, spawnLocs[spawnInd++]);
-//        }
-//        while(spawnInd < spawnSpaces && rc.canBuildRobot(trySecond, spawnLocs[spawnInd])) {
-//            rc.buildRobot(trySecond, spawnLocs[spawnInd++]);
-//        }
         Direction launcherDir = closeEnemyHqLoc == null ? dirToCent : curLoc.directionTo(closeEnemyHqLoc);
-        Direction carrierDir = closeWellLoc == null ? Direction.CENTER : curLoc.directionTo(closeWellLoc);
-
         while(buildInDir(rc, RobotType.LAUNCHER, launcherDir));
         boolean keepBuilding = true;
         while(keepBuilding) {
@@ -161,8 +152,8 @@ public class Headquarters extends Robot {
 
     static boolean buildInDir(RobotController rc, RobotType type, Direction dir) throws GameActionException {
         if(!rc.isActionReady()
-                || rc.getResourceAmount(ResourceType.ADAMANTIUM) < type.buildCostAdamantium
-                || rc.getResourceAmount(ResourceType.MANA) < type.buildCostMana) return false;
+                || rc.getResourceAmount(ResourceType.ADAMANTIUM) - saveAd < type.buildCostAdamantium
+                || rc.getResourceAmount(ResourceType.MANA) - saveMn < type.buildCostMana) return false;
         Direction[] tryDirs = {
                 dir,
                 dir.rotateRight(),
