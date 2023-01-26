@@ -71,8 +71,8 @@ public class Launcher extends Robot {
         }
 
         runLauncherState(rc);
-        if(shot == null) shot = tryToShoot(rc);
-        if(shot == null) takePotshot(rc);
+        tryToShoot(rc);
+        takePotshot(rc);
     }
     private static void runLauncherState(RobotController rc) throws GameActionException {
         switch (state) {
@@ -140,6 +140,7 @@ public class Launcher extends Robot {
 
     private static ArrayList<MapLocation> shotLocs = new ArrayList<MapLocation>();
     private static void takePotshot(RobotController rc) throws GameActionException {
+        if(!rc.isActionReady()) return;
         shotLocs.clear();
         MapLocation curLoc = rc.getLocation();
         // shoot randomly at a position that is out of vision
@@ -167,6 +168,7 @@ public class Launcher extends Robot {
     }
 
     private static MapLocation tryToShoot(RobotController rc) throws GameActionException {
+        if(!rc.isActionReady()) return null;
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
