@@ -25,25 +25,7 @@ public class Headquarters extends Robot {
         // Pick a direction to build in.
         MapLocation curLoc = rc.getLocation();
 
-        if(turnCount == 1) {
-            if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
-            Comms.writeHQ(rc, rc.getLocation());
-            hqCount = rc.getRobotCount();
-
-            WellInfo[] wells = rc.senseNearbyWells();
-            for (WellInfo well : wells) {
-                if(well.getResourceType() == ResourceType.MANA) closeWellLoc = well.getMapLocation();
-                Comms.writeWellLoc(rc, well);
-            }
-
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for(RobotInfo robot: robots) {
-                if(robot.getType() == RobotType.HEADQUARTERS && robot.getTeam() != rc.getTeam()) {
-                    closeEnemyHqLoc = robot.getLocation();
-                    break;
-                }
-            }
-        }
+        if(turnCount == 1) firstTurn(rc);
 //        else if (turnCount == 2) {
         // unused for now
 //            Symmetry[] possibleSyms = getSymmetry(rc);
@@ -149,6 +131,47 @@ public class Headquarters extends Robot {
 //            }
 //        }
 //    }
+    static void firstTurn(RobotController rc) throws GameActionException {
+        if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
+        int numHqs = Comms.getNumHQs(rc);
+        if(numHqs == 0) Comms.writeNumHQs(rc, rc.getRobotCount());
+        Comms.writeHQ(rc, rc.getLocation());
+
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well : wells) {
+            if(well.getResourceType() == ResourceType.MANA) closeWellLoc = well.getMapLocation();
+            Comms.writeWellLoc(rc, well);
+        }
+
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot: robots) {
+            if(robot.getType() == RobotType.HEADQUARTERS && robot.getTeam() != rc.getTeam()) {
+                closeEnemyHqLoc = robot.getLocation();
+                Comms.writeEnemyHqLoc(rc, closeEnemyHqLoc);
+            }
+        }
+
+        // Get current hq idx
+        MapLocation[] friendlyHqs = Comms.getHQs(rc);
+        int hqIdx = 0;
+        for(int i = 0; i < Constants.MAX_HQS_STORED; ++i) {
+            MapLocation curHqLoc = friendlyHqs[i];
+            if(curHqLoc.equals(rc.getLocation())) {
+                hqIdx = i;
+                break;
+            }
+        }
+
+        // For the last HQ, start ruling out symmetries
+        if(hqIdx == numHqs - 1) {
+            ruleOutSymmetries(rc);
+            Comms.wipeEnemyHqLocs(rc);
+        }
+    }
+
+    private static void ruleOutSymmetries(RobotController rc) {
+        // TODO
+    }
 
     static boolean buildInDir(RobotController rc, RobotType type, Direction dir) throws GameActionException {
         if(!rc.isActionReady()
