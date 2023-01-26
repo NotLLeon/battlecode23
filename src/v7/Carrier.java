@@ -147,29 +147,29 @@ public class Carrier extends Robot {
         //Check for nearby launchers
         RobotInfo[] robotInfo = rc.senseNearbyRobots();
 
-        boolean running = false;
         for (RobotInfo robot : robotInfo) {
+            // FIXME: jank
             if (robot.getTeam() != rc.getTeam() && robot.getType() == RobotType.LAUNCHER) {
                 MapLocation enemyLoc = robot.getLocation();
-
+                MapLocation loc1 = rc.getLocation();
                 Direction dir = rc.getLocation().directionTo(robot.getLocation()).opposite();
                 Direction dir_left = dir.rotateLeft();
                 Direction dir_right = dir.rotateRight();
                 while (rc.canMove(dir)) rc.move(dir);
                 while (rc.canMove(dir_left)) rc.move(dir_left);
                 while (rc.canMove(dir_right)) rc.move(dir_right);
-                Direction dir_to = dir.opposite();
-                Direction dir_to_left = dir_to.rotateLeft();
-                Direction dir_to_right = dir_to.rotateRight();
-                while (rc.canMove(dir_to)) rc.move(dir_to);
-                while (rc.canMove(dir_to_left)) rc.move(dir_to_left);
-                while (rc.canMove(dir_to_right)) rc.move(dir_to_right);
-                if (rc.canAttack(robot.getLocation())) rc.attack(enemyLoc);
-                running = true;
+                if(loc1.equals(rc.getLocation())) {
+                    Direction dir_to = dir.opposite();
+                    Direction dir_to_left = dir_to.rotateLeft();
+                    Direction dir_to_right = dir_to.rotateRight();
+                    while (rc.canMove(dir_to)) rc.move(dir_to);
+                    while (rc.canMove(dir_to_left)) rc.move(dir_to_left);
+                    while (rc.canMove(dir_to_right)) rc.move(dir_to_right);
+                    if (rc.canAttack(robot.getLocation())) rc.attack(enemyLoc);
+                }
                 break;
             }
         }
-        if(running && state == CARRIER_STATE.COLLECTING) state = CARRIER_STATE.MOVE_TO_WELL;
 
         //Decide Initial Role, will anchor on returning.
         if (turnCount == 1) {
@@ -407,8 +407,10 @@ public class Carrier extends Robot {
 
     private static void runCarrierCollecting(RobotController rc) throws GameActionException {
         //rc.setIndicatorString("COLLECTING");
-
-        if(rc.getWeight() >= 39) {
+        if(!rc.getLocation().isAdjacentTo(current_objective)) {
+            state = CARRIER_STATE.MOVE_TO_WELL;
+            runCarrierState(rc);
+        } else if(rc.getWeight() >= 39) {
             current_objective = getClosestHQ(rc);
             state = CARRIER_STATE.RETURNING;
             runCarrierState(rc);
