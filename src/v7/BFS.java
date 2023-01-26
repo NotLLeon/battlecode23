@@ -249,6 +249,7 @@ public class BFS {
                 }
             }
         }
+        if(Clock.getBytecodesLeft() < 3000) return Direction.CENTER;
         curDir = rotateInt(bestDir, 1);
         firstDir = curDir;
         loc = curLoc.add(curDir);
@@ -557,6 +558,7 @@ public class BFS {
                 }
             }
         }
+        if(Clock.getBytecodesLeft() < 5000) return Direction.CENTER;
         curDir = rotateInt(bestDir, 1);
         firstDir = curDir;
         loc = curLoc.add(curDir);
