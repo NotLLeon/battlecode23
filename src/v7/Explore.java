@@ -19,7 +19,8 @@ public class Explore {
     }
 
     public static Direction exploreAwayFromLoc(RobotController rc, MapLocation loc) throws GameActionException {
-        Direction locDir = rc.getLocation().directionTo(loc);
+        MapLocation curLoc = rc.getLocation();
+        Direction locDir = curLoc.directionTo(loc);
 
         // 8 Directions, init all weight 1
         int[] weights = {1, 1, 1, 1, 1, 1, 1, 1};
@@ -36,8 +37,19 @@ public class Explore {
         MapLocation [] unmoveableAreas = getAllDetectableWalls(rc);
         for (MapLocation wall : unmoveableAreas) {
             if (wall == null) continue;
-            weights[Random.getDirectionOrderNum(rc.getLocation().directionTo(wall))] = 0;
+            weights[Random.getDirectionOrderNum(curLoc.directionTo(wall))] = 0;
         }
+
+        RobotInfo [] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots) {
+            if(robot.getType() == RobotType.LAUNCHER && robot.getTeam() != rc.getTeam()) {
+                int dirIndex = Random.getDirectionOrderNum(curLoc.directionTo(robot.getLocation()));
+                weights[dirIndex] = 0;
+                weights[(dirIndex+1)%8] = 0;
+                weights[(dirIndex+7)%8] = 0;
+            }
+        }
+
         for(int i = 0; i < 8; ++i) {
             Direction tmp = Random.directions[i];
             if(!rc.canMove(tmp)) weights[i] = 0;
