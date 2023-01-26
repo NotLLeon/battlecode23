@@ -28,11 +28,12 @@ public class Explore {
         if (locDir != Direction.CENTER) {
             // Directions pointing towards loc lowest weight
             // Directions away from loc higher weight
-            weights[Random.getDirectionOrderNum(locDir.opposite().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.opposite().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.opposite())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.rotateLeft().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.rotateRight().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
+            int dirIndex = Random.getDirectionOrderNum(locDir);
+            weights[(dirIndex+2)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+3)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+4)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+5)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+6)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
         }
         MapLocation [] unmoveableAreas = getAllDetectableWalls(rc);
         for (MapLocation wall : unmoveableAreas) {
@@ -42,11 +43,14 @@ public class Explore {
 
         RobotInfo [] robots = rc.senseNearbyRobots();
         for(RobotInfo robot : robots) {
-            if(robot.getType() == RobotType.LAUNCHER && robot.getTeam() != rc.getTeam()) {
+            if((robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) && robot.getTeam() != rc.getTeam()) {
                 int dirIndex = Random.getDirectionOrderNum(curLoc.directionTo(robot.getLocation()));
                 weights[dirIndex] = 0;
                 weights[(dirIndex+1)%8] = 0;
                 weights[(dirIndex+7)%8] = 0;
+                weights[(dirIndex+3)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+                weights[(dirIndex+4)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+                weights[(dirIndex+5)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
             }
         }
 
@@ -69,7 +73,7 @@ public class Explore {
         }
 
         if (numClosePrevLocs == Constants.NUM_TRACKED_LOCATIONS) {
-//            rc.setIndicatorString("TRAPPED");
+            rc.setIndicatorString("TRAPPED");
             numMoves = 0;
         }
 

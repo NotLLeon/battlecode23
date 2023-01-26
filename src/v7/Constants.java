@@ -7,7 +7,7 @@ public class Constants {
 
 
     // limits for explore
-    static int NUM_TRACKED_LOCATIONS = 5;
+    static int NUM_TRACKED_LOCATIONS = 10;
 
     static int MOVES_TO_TRACK_LOCATION = 5;
 
