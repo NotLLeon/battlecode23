@@ -28,7 +28,9 @@ public class Constants {
     static int MAX_AD_WELLS_STORED = 10;
     static int MAX_MANA_WELLS_STORED = 10;
     static int MAX_HQS_STORED=4;
-    static int MAX_ISLANDS_STORED=20;
+
+    // Number of slots in the shared array is 2 times this number
+    static int MAX_ISLANDS_STORED=15;
 
     //Resource Management
     static double ideal_ratio = 0.3; //Ideal quotient of Ad/(Ad+Mana)
