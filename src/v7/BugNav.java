@@ -99,15 +99,24 @@ public class BugNav {
 //            rc.setIndicatorString(locIndex + " " + Arrays.toString(pastLocs));
             locIndex = (locIndex+1) % numPastLocs;
             for (int i = 0; i < numPastLocs; ++i) {
-                if (i == ((numPastLocs + locIndex - 2) % numPastLocs)) continue;
-                MapLocation loc = pastLocs[i];
-                if (loc != null && loc.equals(curLoc)) {
-                    needsReset = true;
+                int pos1 = (numPastLocs + locIndex - 2) % numPastLocs;
+//                int pos2 = (numPastLocs + locIndex - 4) % numPastLocs;
+//                MapLocation loc1 = pastLocs[pos1];
+//                MapLocation loc2 = pastLocs[pos2];
+//                if(loc1 != null && loc2 != null && loc1.equals(curLoc) && loc2.equals(curLoc)) {
+//                    needsReset = true;
+//                    break;
+//                }
+                if (i != pos1) {
+                    MapLocation loc = pastLocs[i];
+                    if (loc != null && loc.equals(curLoc)) {
+                        needsReset = true;
 //                    rc.setIndicatorDot(curLoc, 0, 0, 256);
-                    break;
+                        break;
+                    }
                 }
             }
-            if(needsReset) reset();
+            if (needsReset) reset();
             else pastLocs[locIndex] = curLoc;
         }
 
