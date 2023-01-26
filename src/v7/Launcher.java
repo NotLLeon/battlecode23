@@ -107,7 +107,13 @@ public class Launcher extends Robot {
     }
 
     private static void runLauncherDefend(RobotController rc) throws GameActionException {
-        moveToOutsideRadius(rc, defendPoint, 4);
+        moveToOutsideRadius(rc, defendPoint, 9);
+        if (rc.isMovementReady()) {
+            Direction rdmMove = Random.nextDir();
+            if (rc.canMove(rdmMove)) {
+                rc.move(rdmMove);
+            }
+        }
     }
 
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
