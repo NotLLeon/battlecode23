@@ -5,6 +5,7 @@ import battlecode.common.*;
 public class Amplifier extends Robot {
 
     static MapLocation baseHQ;
+
     public static void runAmplifier(RobotController rc, int turnCount) throws GameActionException {
         if (turnCount == 1) {
             baseHQ = getClosestHQ(rc);

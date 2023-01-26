@@ -7,8 +7,20 @@ public class Explore {
     static int numMoves = 0;
     static MapLocation[] prevLocs = new MapLocation[Constants.NUM_TRACKED_LOCATIONS];
 
-    public static Direction exploreAwayFromLoc(RobotController rc, MapLocation loc) {
-        Direction locDir = rc.getLocation().directionTo(loc);
+    static Direction prevDir;
+
+    public static MapLocation [] getAllDetectableWalls(RobotController rc) throws GameActionException {
+        MapLocation [] detectedAreas = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), 4);
+        for (int i = 0; i < detectedAreas.length; ++i) {
+            MapInfo info = rc.senseMapInfo(detectedAreas[i]);
+            if (info.isPassable()) detectedAreas[i] = null;
+        }
+        return detectedAreas;
+    }
+
+    public static Direction exploreAwayFromLoc(RobotController rc, MapLocation loc) throws GameActionException {
+        MapLocation curLoc = rc.getLocation();
+        Direction locDir = curLoc.directionTo(loc);
 
         // 8 Directions, init all weight 1
         int[] weights = {1, 1, 1, 1, 1, 1, 1, 1};
@@ -16,12 +28,32 @@ public class Explore {
         if (locDir != Direction.CENTER) {
             // Directions pointing towards loc lowest weight
             // Directions away from loc higher weight
-            weights[Random.getDirectionOrderNum(locDir.opposite().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.opposite().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.opposite())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.rotateLeft().rotateLeft())] *= Constants.HIGH_WEIGHT_DIRECTION;
-            weights[Random.getDirectionOrderNum(locDir.rotateRight().rotateRight())] *= Constants.HIGH_WEIGHT_DIRECTION;
+            int dirIndex = Random.getDirectionOrderNum(locDir);
+            weights[(dirIndex+2)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+3)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+4)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+5)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            weights[(dirIndex+6)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
         }
+        MapLocation [] unmoveableAreas = getAllDetectableWalls(rc);
+        for (MapLocation wall : unmoveableAreas) {
+            if (wall == null) continue;
+            weights[Random.getDirectionOrderNum(curLoc.directionTo(wall))] = 0;
+        }
+
+        RobotInfo [] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots) {
+            if((robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) && robot.getTeam() != rc.getTeam()) {
+                int dirIndex = Random.getDirectionOrderNum(curLoc.directionTo(robot.getLocation()));
+                weights[dirIndex] = 0;
+                weights[(dirIndex+1)%8] = 0;
+                weights[(dirIndex+7)%8] = 0;
+                weights[(dirIndex+3)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+                weights[(dirIndex+4)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+                weights[(dirIndex+5)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+            }
+        }
+
         for(int i = 0; i < 8; ++i) {
             Direction tmp = Random.directions[i];
             if(!rc.canMove(tmp)) weights[i] = 0;
@@ -41,7 +73,7 @@ public class Explore {
         }
 
         if (numClosePrevLocs == Constants.NUM_TRACKED_LOCATIONS) {
-//            rc.setIndicatorString("TRAPPED");
+            rc.setIndicatorString("TRAPPED");
             numMoves = 0;
         }
 
@@ -62,29 +94,20 @@ public class Explore {
             }
 
         } else {
-
-//            MapLocation avgLoc = getAvgLocation(prevLocs);
-            Direction dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+            Direction dir = prevDir;
+            if (numMoves % Constants.MOVES_TO_TRACK_LOCATION == 0 || !rc.canMove(dir)) {
+                dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+            }
             if(dir != Direction.CENTER) {
                 if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
+                    numMoves = 0;
                     prevLocs[prevlocIdx] = rc.getLocation();
                     prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
                 }
+                prevDir = dir;
                 rc.move(dir);
                 exploreNewArea(rc);
             }
-//            for (int i = 0; i < Constants.MAX_DIRECTION_SEARCH_ATTEMPTS; ++i) {
-//                if (rc.canMove(dir)) {
-//                    if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
-//                        prevLocs[prevlocIdx] = rc.getLocation();
-//                        prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
-//                    }
-//                    rc.move(dir);
-//                    exploreNewArea(rc);
-//                    break;
-//                }
-//                dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
-//            }
         }
     }
 

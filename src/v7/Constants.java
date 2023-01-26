@@ -2,12 +2,12 @@ package v7;
 
 public class Constants {
     // weights for explore
-    static int HIGH_WEIGHT_DIRECTION = 6;
-    static int MID_WEIGHT_DIRECTION = 2;
+    static int HIGH_WEIGHT_DIRECTION = 10;
+    static int MID_WEIGHT_DIRECTION = 4;
 
 
     // limits for explore
-    static int NUM_TRACKED_LOCATIONS = 5;
+    static int NUM_TRACKED_LOCATIONS = 10;
 
     static int MOVES_TO_TRACK_LOCATION = 5;
 
