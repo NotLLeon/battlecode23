@@ -119,9 +119,11 @@ public class Headquarters extends Robot {
 //        if(turnCount < 250) weight = 4;
         RobotType tryFirst = null;
         RobotType trySecond = null;
-
-        if((turnCount > 3 && Random.nextInt(weight) == 0)
-                || (turnCount <= 3 && !smallMap && closeEnemyHqLoc == null)) {
+        boolean spawnCarrierFirst = turnCount != 1 && Random.nextBoolean();
+//
+//        if((turnCount > 3 && Random.nextInt(weight) == 0)
+//                || (turnCount <= 3 && !smallMap && closeEnemyHqLoc == null)) {
+        if(spawnCarrierFirst) {
             tryFirst = RobotType.CARRIER;
             trySecond = RobotType.LAUNCHER;
         } else {
@@ -136,23 +138,12 @@ public class Headquarters extends Robot {
 //        }
         Direction launcherDir = closeEnemyHqLoc == null ? dirToCent : curLoc.directionTo(closeEnemyHqLoc);
         Direction carrierDir = closeWellLoc == null ? Direction.CENTER : curLoc.directionTo(closeWellLoc);
-        Direction buildDir1, buildDir2;
-        if(tryFirst == RobotType.LAUNCHER) {
-            buildDir1 = launcherDir;
-            buildDir2 = carrierDir;
-        } else {
-            buildDir1 = carrierDir;
-            buildDir2 = launcherDir;
-        }
-        boolean stop1 = false;
-        while(!stop1) {
-            if(buildDir1 == Direction.CENTER) stop1 = !buildInDir(rc, tryFirst, Random.nextDir());
-            else stop1 = !buildInDir(rc, tryFirst, buildDir1);
-        }
-        boolean stop2 = false;
-        while(!stop2) {
-            if(buildDir2 == Direction.CENTER) stop2 = !buildInDir(rc, trySecond, Random.nextDir());
-            else stop2 = !buildInDir(rc, trySecond, buildDir2);
+
+        while(buildInDir(rc, RobotType.LAUNCHER, launcherDir));
+        boolean keepBuilding = true;
+        while(keepBuilding) {
+            if(closeWellLoc == null || turnCount >= 15) keepBuilding = buildInDir(rc, RobotType.CARRIER, Random.nextDir());
+            else keepBuilding = buildInDir(rc, RobotType.CARRIER, curLoc.directionTo(closeWellLoc));
         }
     }
 
@@ -169,6 +160,9 @@ public class Headquarters extends Robot {
 //    }
 
     static boolean buildInDir(RobotController rc, RobotType type, Direction dir) throws GameActionException {
+        if(!rc.isActionReady()
+                || rc.getResourceAmount(ResourceType.ADAMANTIUM) < type.buildCostAdamantium
+                || rc.getResourceAmount(ResourceType.MANA) < type.buildCostMana) return false;
         Direction[] tryDirs = {
                 dir,
                 dir.rotateRight(),

@@ -17,6 +17,10 @@ public class BugNav {
     private final static int numPastLocs = 15;
     private static MapLocation[] pastLocs = new MapLocation[numPastLocs];
     private static int locIndex = -1;
+    private static MapLocation blockingRobot = null;
+    private static boolean traceLeft = true;
+    private static int turnsTracingObstacle = 0;
+    private static boolean changedTrace = false;
 
     public static boolean tracingObstacle() {
         return obstacle;
@@ -68,7 +72,7 @@ public class BugNav {
                 || currentDir == dir
                 || currentDir == dir.rotateLeft()
                 || currentDir == dir.rotateRight();
-        RobotInfo hasRobot = rc.senseRobotAtLocation(loc);
+//        RobotInfo hasRobot = rc.senseRobotAtLocation(loc);
 //        boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
 //        return locInfo.isPassable() && goodCurrent && goodRobot;
         return rc.canMove(dir) && goodCurrent;
@@ -124,7 +128,7 @@ public class BugNav {
 //                assumedLoc = curLoc.add(dir);
                 return dir;
             }
-
+            if(rc.canSenseRobotAtLocation(curLoc.add(dir))) blockingRobot = curLoc.add(dir);
             obstacle = true;
             computeSlope(curLoc, dest);
 //            rc.setIndicatorString("found obs at: " + curLoc);
@@ -135,6 +139,13 @@ public class BugNav {
         } else {
             int curDis = curLoc.distanceSquaredTo(dest);
 //            rc.setIndicatorString(dis + " " + curDis + " " +onLine(curLoc) + " " + (lineEval(curLoc.x) - curLoc.y) + " " + collisionLoc);
+//            if(blockingRobot != null
+//                    && curLoc.isWithinDistanceSquared(blockingRobot, 16)
+//                    && !rc.canSenseRobotAtLocation(blockingRobot)) {
+//                reset();
+//                return getDir(rc, dest);
+//            }
+
             if(onLine(curLoc) && curDis < dis) {
 //                rc.setIndicatorDot(curLoc, 256, 0, 0);
                 reset();
@@ -147,7 +158,8 @@ public class BugNav {
 //                rc.setIndicatorString("broke");
                 return Direction.CENTER;
             }
-            nextDir = traceDir.rotateRight().rotateRight();
+            if(traceLeft) nextDir = traceDir.rotateRight().rotateRight();
+            else nextDir = traceDir.rotateLeft().rotateLeft();
         }
         for(int i = 0; i < 8; ++i) {
             if(isPassable(rc, nextDir)) {
@@ -155,7 +167,8 @@ public class BugNav {
 //                assumedLoc = curLoc.add(traceDir);
                 return traceDir;
             } else {
-                nextDir = nextDir.rotateLeft();
+                if(traceLeft) nextDir = nextDir.rotateLeft();
+                else nextDir = nextDir.rotateRight();
             }
         }
 //        rc.setIndicatorString("cent");
