@@ -26,7 +26,13 @@ public class BugNav {
         return obstacle;
     }
 
-    public static void reset() {
+    private static void reset() {
+        softReset();
+        turnsTracingObstacle = 0;
+        changedTrace = false;
+    }
+
+    private static void softReset() {
         pastLocs = new MapLocation[numPastLocs];
         locIndex = -1;
         curDest = null;
@@ -35,6 +41,7 @@ public class BugNav {
         obstacle = false;
         isReachable = true;
     }
+
 
     public static boolean isReachable(MapLocation dest) {
         return !dest.equals(curDest) || isReachable;
@@ -137,6 +144,8 @@ public class BugNav {
             collisionLoc = curLoc;
             nextDir = dir;
         } else {
+//            rc.setIndicatorString("" + collisionLoc);
+            turnsTracingObstacle++;
             int curDis = curLoc.distanceSquaredTo(dest);
 //            rc.setIndicatorString(dis + " " + curDis + " " +onLine(curLoc) + " " + (lineEval(curLoc.x) - curLoc.y) + " " + collisionLoc);
 //            if(blockingRobot != null
@@ -158,6 +167,14 @@ public class BugNav {
 //                rc.setIndicatorString("broke");
                 return Direction.CENTER;
             }
+
+            if(turnsTracingObstacle > 10 && !changedTrace) {
+                changedTrace = true;
+                traceLeft = !traceLeft;
+                softReset();
+                return getDir(rc, dest);
+            }
+
             if(traceLeft) nextDir = traceDir.rotateRight().rotateRight();
             else nextDir = traceDir.rotateLeft().rotateLeft();
         }
