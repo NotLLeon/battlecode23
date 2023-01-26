@@ -48,9 +48,19 @@ public class Launcher extends Robot {
         if(state != LAUNCHER_STATE.ON_TARGET) {
             MapLocation[] distress = Comms.getDistressLocations(rc);
             if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
-                state = LAUNCHER_STATE.DEFEND;
-                defendPoint = distress[Random.nextInt(distress.length)];
-            } 
+                if(rc.getRoundNum() > 200) {
+                    state = LAUNCHER_STATE.DEFEND;
+                    defendPoint = distress[Random.nextInt(distress.length)];
+                } else {
+                    for(MapLocation disLoc : distress) {
+                        if(disLoc.equals(originHq)) {
+                            state = LAUNCHER_STATE.DEFEND;
+                            defendPoint = disLoc;
+                            break;
+                        }
+                    }
+                }
+            }
             else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
                 // state = LAUNCHER_STATE.GOTO_LOCATION;
                 state = LAUNCHER_STATE.PATROL;
@@ -59,12 +69,6 @@ public class Launcher extends Robot {
             //     state = LAUNCHER_STATE.GOTO_LOCATION;
             // }
         }
-
-        MapLocation[] distress = Comms.getDistressLocations(rc);
-        if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
-            state = LAUNCHER_STATE.DEFEND;
-            defendPoint = distress[Random.nextInt(distress.length)];
-        } 
 
         runLauncherState(rc);
         if(shot == null) shot = tryToShoot(rc);
@@ -103,7 +107,7 @@ public class Launcher extends Robot {
     }
 
     private static void runLauncherDefend(RobotController rc) throws GameActionException {
-        moveToRadius(rc, defendPoint, 3);
+        moveToOutsideRadius(rc, defendPoint, 4);
     }
 
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
