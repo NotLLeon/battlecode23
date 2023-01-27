@@ -86,7 +86,7 @@ public class BugNav {
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
-        rc.setIndicatorString(""+changedTrace);
+//        rc.setIndicatorString(""+changedTrace);
 //        rc.setIndicatorString(locIndex + Arrays.toString(pastLocs));
 //        rc.setIndicatorDot(rc.getLocation(), 256, 0, 0);
         // Bug2
