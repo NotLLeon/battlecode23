@@ -158,7 +158,7 @@ public class Launcher extends Robot {
             if (!isReachable(rc, curTarget)) { locIgnore[targetInd] = true; }
             nextTarget();
         }
-        rc.setIndicatorDot(targets[targetInd], 0, 255, 0);
+//        rc.setIndicatorDot(targets[targetInd], 0, 255, 0);
     }
     private static void runLauncherOnTarget(RobotController rc) throws GameActionException {
         MapLocation curTarget = targets[targetInd];
@@ -266,7 +266,7 @@ public class Launcher extends Robot {
 
     private static void generateTargets(RobotController rc) throws GameActionException {
         int syms = Comms.getPossibleSyms(rc);
-        rc.setIndicatorString("SYMS: " + syms + " SET: " + lastSymState);
+//        rc.setIndicatorString("SYMS: " + syms + " SET: " + lastSymState);
         if (syms == lastSymState) { return; }
         
         // % 2 for horz, /2 %2 for vert, /4 for rotational
