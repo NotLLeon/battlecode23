@@ -167,7 +167,7 @@ public class BugNav {
 //            }
 
             if(onLine(curLoc) && curDis < dis - 1) {
-                rc.setIndicatorDot(curLoc, 0, 0, 256);
+//                rc.setIndicatorDot(curLoc, 0, 0, 256);
                 reset();
                 return getDir(rc, dest);
             }
