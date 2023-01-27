@@ -9,6 +9,26 @@ public class Explore {
 
     static Direction prevDir;
 
+
+    static MapLocation findClosestLoc(RobotController rc, MapLocation[] locs) {
+        MapLocation curLoc = rc.getLocation();
+        int minDist = 10000;
+        MapLocation closest = new MapLocation(0, 0);
+        for (MapLocation loc : locs) {
+            if (loc == null) continue;
+            int newDist = curLoc.distanceSquaredTo(loc);
+            if (newDist < minDist) {
+                minDist = newDist;
+                closest = loc;
+            }
+        }
+        return closest;
+    }
+
+    static MapLocation getClosestHQ(RobotController rc) throws GameActionException {
+        return findClosestLoc(rc, Comms.getHQs(rc));
+    }
+
     public static MapLocation [] getAllDetectableWalls(RobotController rc) throws GameActionException {
         MapLocation [] detectedAreas = rc.getAllLocationsWithinRadiusSquared(rc.getLocation(), 4);
         for (int i = 0; i < detectedAreas.length; ++i) {
@@ -21,6 +41,8 @@ public class Explore {
     public static Direction exploreAwayFromLoc(RobotController rc, MapLocation loc) throws GameActionException {
         MapLocation curLoc = rc.getLocation();
         Direction locDir = curLoc.directionTo(loc);
+        MapLocation hqloc = getClosestHQ(rc);
+        int maxDistFromHQ = rc.getMapHeight() / 2;
 
         // 8 Directions, init all weight 1
         int[] weights = {1, 1, 1, 1, 1, 1, 1, 1};
@@ -45,8 +67,15 @@ public class Explore {
             if (!rc.onTheMap(curLoc.add(dir).add(dir))) {
                 weights[Random.getDirectionOrderNum(dir)] = 0;
             }
-        }
 
+            if (rc.getType() == RobotType.CARRIER) {
+                if (hqloc.distanceSquaredTo(curLoc.add(dir)) > maxDistFromHQ) {
+                    weights[Random.getDirectionOrderNum(dir)] = 0;
+                }
+
+            }
+
+        }
         RobotInfo [] robots = rc.senseNearbyRobots();
         for(RobotInfo robot : robots) {
             if((robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) && robot.getTeam() != rc.getTeam()) {
