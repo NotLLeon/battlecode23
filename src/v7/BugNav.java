@@ -86,7 +86,7 @@ public class BugNav {
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
-//        rc.setIndicatorString(""+changedTrace);
+//        rc.setIndicatorString(""+changedTrace + " colLoc:" + collisionLoc + " curDest:" + curDest);
 //        rc.setIndicatorString(locIndex + Arrays.toString(pastLocs));
 //        rc.setIndicatorDot(rc.getLocation(), 256, 0, 0);
         // Bug2
@@ -123,6 +123,7 @@ public class BugNav {
 
 //        if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
         if(!dest.equals(curDest)) {
+//            rc.setIndicatorDot(curLoc, 0, 256, 0);
             reset();
             curDest = dest;
 //            assumedLoc = curLoc;
@@ -145,7 +146,7 @@ public class BugNav {
 //                assumedLoc = curLoc.add(dir);
                 return dir;
             }
-            if(rc.canSenseRobotAtLocation(curLoc.add(dir))) blockingRobot = curLoc.add(dir);
+//            if(rc.canSenseRobotAtLocation(curLoc.add(dir))) blockingRobot = curLoc.add(dir);
             obstacle = true;
             computeSlope(curLoc, dest);
 //            rc.setIndicatorString("found obs at: " + curLoc);
@@ -165,8 +166,8 @@ public class BugNav {
 //                return getDir(rc, dest);
 //            }
 
-            if(onLine(curLoc) && curDis < dis) {
-//                rc.setIndicatorDot(curLoc, 256, 0, 0);
+            if(onLine(curLoc) && curDis < dis - 1) {
+//                rc.setIndicatorDot(curLoc, 0, 0, 256);
                 reset();
                 return getDir(rc, dest);
             }
