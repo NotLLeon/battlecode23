@@ -211,7 +211,7 @@ public class Carrier extends Robot {
 
     private static void runCarrierExploring(RobotController rc) throws GameActionException {
         // TODO: rewrite
-        rc.setIndicatorString("EXPLORING");
+//        rc.setIndicatorString("EXPLORING");
 
         int[] island_ids = rc.senseNearbyIslands();
 
@@ -301,14 +301,11 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierMoveToWell(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
-        MapLocation curLoc = rc.getLocation();
-        if (!curLoc.isAdjacentTo(current_objective)) {
-            moveTo(rc, current_objective);
-            moveTo(rc, current_objective);
-        }
+//        rc.setIndicatorString("MOVE_TO_WELL, Current Objective: (" + current_objective.x + ", " + current_objective.y + "), WELLS: " + Comms.getNumWells(rc));
+        if (!rc.getLocation().isAdjacentTo(current_objective)) moveTo(rc, current_objective);
+        if (!rc.getLocation().isAdjacentTo(current_objective)) moveTo(rc, current_objective);
         senseAndStoreWellLocs(rc);
-        curLoc = rc.getLocation();
+        MapLocation curLoc = rc.getLocation();
         if(curLoc.isAdjacentTo(current_objective)) {
             state = CARRIER_STATE.COLLECTING;
             runCarrierState(rc);
@@ -342,7 +339,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierReturning(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
+//        rc.setIndicatorString("RETURNING, Current Objective: (" + current_objective.x + ", " + current_objective.y + ")");
         current_objective = getClosestHQ(rc);
         moveTo(rc, current_objective);
         senseAndStoreWellLocs(rc);
@@ -415,6 +412,10 @@ public class Carrier extends Robot {
             state = CARRIER_STATE.RETURNING;
             runCarrierState(rc);
         } else {
+            MapLocation curLoc = rc.getLocation();
+            if(!curLoc.equals(current_objective) && rc.canMove(curLoc.directionTo(current_objective))) {
+                rc.move(curLoc.directionTo(current_objective));
+            }
             while (rc.canCollectResource(current_objective, -1)){
                 rc.collectResource(current_objective, -1);
             }
@@ -422,7 +423,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierIslandSearch(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("ISLAND SEARCH");
+//        rc.setIndicatorString("ISLAND SEARCH");
 
         if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
             senseAndStoreWellLocs(rc);
@@ -459,7 +460,7 @@ public class Carrier extends Robot {
     }
 
     private static void runCarrierAnchoring(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
+//        rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
         int island_id = rc.senseIsland(rc.getLocation());
         if (island_id != -1) {
 //            rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Within Range)");
