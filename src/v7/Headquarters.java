@@ -14,6 +14,7 @@ public class Headquarters extends Robot {
     static boolean tryingtoBuildAnchor = false;
     static int saveMn = 0;
     static int saveAd = 0;
+    static boolean shouldSave = false;
 
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
@@ -90,6 +91,15 @@ public class Headquarters extends Robot {
             saveMn += Anchor.STANDARD.manaCost;
         }
 
+        if (enemyLaunchers > 0) {
+            tryingToBuildAmp = false;
+            shouldSave = true;
+        }
+
+        if (rc.getResourceAmount(ResourceType.MANA) >= Math.min(enemyLaunchers * 2, 5) * RobotType.LAUNCHER.buildCostMana) {
+            shouldSave = false;
+        }
+
         if(tryingToBuildAmp && buildInDir(rc, RobotType.AMPLIFIER, dirToCent)) {
             tryingToBuildAmp = false;
             saveAd -= RobotType.AMPLIFIER.buildCostAdamantium;
@@ -106,9 +116,9 @@ public class Headquarters extends Robot {
         if(currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
 
         Direction launcherDir = closeEnemyHqLoc == null ? dirToCent : curLoc.directionTo(closeEnemyHqLoc);
-        while(buildInDir(rc, RobotType.LAUNCHER, launcherDir));
+        while(!shouldSave && buildInDir(rc, RobotType.LAUNCHER, launcherDir));
         boolean keepBuilding = true;
-        while(keepBuilding) {
+        while(!shouldSave && keepBuilding) {
             if(closeWellLoc == null || turnCount >= 15) keepBuilding = buildInDir(rc, RobotType.CARRIER, Random.nextDir());
             else keepBuilding = buildInDir(rc, RobotType.CARRIER, curLoc.directionTo(closeWellLoc));
         }
