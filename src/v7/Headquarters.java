@@ -96,7 +96,7 @@ public class Headquarters extends Robot {
             shouldSave = true;
         }
 
-        if (rc.getResourceAmount(ResourceType.MANA) >= Math.min(enemyLaunchers * 2 * RobotType.LAUNCHER.buildCostMana, 5)) {
+        if (rc.getResourceAmount(ResourceType.MANA) >= Math.min(enemyLaunchers * 2, 5) * RobotType.LAUNCHER.buildCostMana) {
             shouldSave = false;
         }
 
