@@ -86,7 +86,7 @@ public class BugNav {
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
-        rc.setIndicatorString(""+changedTrace + " colLoc:" + collisionLoc + " curDest:" + curDest);
+//        rc.setIndicatorString(""+changedTrace + " colLoc:" + collisionLoc + " curDest:" + curDest);
 //        rc.setIndicatorString(locIndex + Arrays.toString(pastLocs));
 //        rc.setIndicatorDot(rc.getLocation(), 256, 0, 0);
         // Bug2
@@ -124,7 +124,6 @@ public class BugNav {
 //        if(!dest.equals(curDest) || !curLoc.equals(assumedLoc)) {
         if(!dest.equals(curDest)) {
 //            rc.setIndicatorDot(curLoc, 0, 256, 0);
-            rc.setIndicatorString(dest + " " + curDest);
             reset();
             curDest = dest;
 //            assumedLoc = curLoc;
@@ -147,7 +146,7 @@ public class BugNav {
 //                assumedLoc = curLoc.add(dir);
                 return dir;
             }
-            if(rc.canSenseRobotAtLocation(curLoc.add(dir))) blockingRobot = curLoc.add(dir);
+//            if(rc.canSenseRobotAtLocation(curLoc.add(dir))) blockingRobot = curLoc.add(dir);
             obstacle = true;
             computeSlope(curLoc, dest);
 //            rc.setIndicatorString("found obs at: " + curLoc);
@@ -160,12 +159,12 @@ public class BugNav {
             turnsTracingObstacle++;
             int curDis = curLoc.distanceSquaredTo(dest);
 //            rc.setIndicatorString(dis + " " + curDis + " " +onLine(curLoc) + " " + (lineEval(curLoc.x) - curLoc.y) + " " + collisionLoc);
-            if(blockingRobot != null
-                    && curLoc.isWithinDistanceSquared(blockingRobot, 16)
-                    && !rc.canSenseRobotAtLocation(blockingRobot)) {
-                reset();
-                return getDir(rc, dest);
-            }
+//            if(blockingRobot != null
+//                    && curLoc.isWithinDistanceSquared(blockingRobot, 16)
+//                    && !rc.canSenseRobotAtLocation(blockingRobot)) {
+//                reset();
+//                return getDir(rc, dest);
+//            }
 
             if(onLine(curLoc) && curDis < dis - 1) {
                 rc.setIndicatorDot(curLoc, 0, 0, 256);
