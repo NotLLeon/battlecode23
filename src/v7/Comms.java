@@ -47,7 +47,13 @@ public class Comms {
 
     public static void writeHQ(RobotController rc, MapLocation loc) throws GameActionException {
         int numHQs = getNumHQs(rc);
-        rc.writeSharedArray(numHQs, encodeHQLoc(rc, loc));
+        for(int i = 0; i < numHQs; ++i) {
+            int cur = rc.readSharedArray(i);
+            if(cur == 0) {
+                rc.writeSharedArray(i, encodeHQLoc(rc, loc));
+                break;
+            }
+        }
 //        rc.writeSharedArray(Constants.IDX_NUM_HQS, numHQs + 1);
         //wellsStartIdx++;
     }
@@ -279,7 +285,15 @@ public class Comms {
 
     public static void wipeEnemyHqLocs(RobotController rc) throws GameActionException {
         int numEnemyHqs = rc.readSharedArray(Constants.IDX_NUM_ISLANDS);
-        for(int i = 0; i< numEnemyHqs; ++i) rc.writeSharedArray(enemyHqStartIdx + i, 0);
+        for(int i = 0; i < numEnemyHqs; ++i) rc.writeSharedArray(enemyHqStartIdx + i, 0);
         rc.writeSharedArray(Constants.IDX_NUM_ISLANDS, 0);
+    }
+
+    public static void writePossibleSyms(RobotController rc, int syms) throws GameActionException {
+        rc.writeSharedArray(Constants.IDX_POSSIBLE_SYMS, syms);
+    }
+
+    public static int getPossibleSyms(RobotController rc) throws GameActionException {
+        return rc.readSharedArray(Constants.IDX_POSSIBLE_SYMS);
     }
 }
