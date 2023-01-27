@@ -10,13 +10,14 @@ public class Launcher extends Robot {
     private static MapLocation[] targets;
     private static int targetInd = 0;
     private static int roundsNearTarget = 0;
-    private static MapLocation defendPoint = null;
+    // private static MapLocation defendPoint = null;
     private static boolean knowSymmetry = false;
 
     static MapLocation meet = null;
 
     enum LAUNCHER_STATE {
-        GOTO_LOCATION, PATROL, DEFEND, ON_TARGET, RETURNING
+        // GOTO_LOCATION, PATROL, DEFEND, ON_TARGET, RETURNING
+        GOTO_LOCATION, PATROL, ON_TARGET, RETURNING
     };
 
     enum SYMMETRY_CHECK {
@@ -63,30 +64,30 @@ public class Launcher extends Robot {
             if (rob.getType() == RobotType.LAUNCHER) numLaunchers++;
         }
 
-        if(state != LAUNCHER_STATE.ON_TARGET) {
-            MapLocation[] distress = Comms.getDistressLocations(rc);
-            if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
-                if(rc.getRoundNum() > 200) {
-                    state = LAUNCHER_STATE.DEFEND;
-                    defendPoint = distress[Random.nextInt(distress.length)];
-                } else {
-                    for(MapLocation disLoc : distress) {
-                        if(disLoc.equals(originHq)) {
-                            state = LAUNCHER_STATE.DEFEND;
-                            defendPoint = disLoc;
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
-                // state = LAUNCHER_STATE.GOTO_LOCATION;
-                state = LAUNCHER_STATE.PATROL;
-            }
-            // else if (state == LAUNCHER_STATE.PATROL && numLaunchers < 2) {
-            //     state = LAUNCHER_STATE.GOTO_LOCATION;
-            // }
-        }
+        // if(state != LAUNCHER_STATE.ON_TARGET) {
+        //     MapLocation[] distress = Comms.getDistressLocations(rc);
+        //     if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
+        //         if(rc.getRoundNum() > 200) {
+        //             state = LAUNCHER_STATE.DEFEND;
+        //             defendPoint = distress[Random.nextInt(distress.length)];
+        //         } else {
+        //             for(MapLocation disLoc : distress) {
+        //                 if(disLoc.equals(originHq)) {
+        //                     state = LAUNCHER_STATE.DEFEND;
+        //                     defendPoint = disLoc;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
+        //         // state = LAUNCHER_STATE.GOTO_LOCATION;
+        //         state = LAUNCHER_STATE.PATROL;
+        //     }
+        //     // else if (state == LAUNCHER_STATE.PATROL && numLaunchers < 2) {
+        //     //     state = LAUNCHER_STATE.GOTO_LOCATION;
+        //     // }
+        // }
 
         runLauncherState(rc);
         tryToShoot(rc);
@@ -95,10 +96,11 @@ public class Launcher extends Robot {
     private static void runLauncherState(RobotController rc) throws GameActionException {
         switch (state) {
             case GOTO_LOCATION: runLauncherGoto(rc); break;
-            case DEFEND:        runLauncherDefend(rc); break;
+            // case DEFEND:        runLauncherDefend(rc); break;
             case PATROL:        runLauncherPatrol(rc); break;
             case ON_TARGET:     runLauncherOnTarget(rc); break;
             case RETURNING:     runLauncherReturning(rc); break;
+            default: throw new GameActionException(GameActionExceptionType.INTERNAL_ERROR, "Not a valid launcher state: " + state);
         }
     }
 
@@ -125,15 +127,15 @@ public class Launcher extends Robot {
         }
     }
 
-    private static void runLauncherDefend(RobotController rc) throws GameActionException {
-        moveToOutsideRadius(rc, defendPoint, 9);
-        if (rc.isMovementReady()) {
-            Direction rdmMove = Random.nextDir();
-            if (rc.canMove(rdmMove)) {
-                rc.move(rdmMove);
-            }
-        }
-    }
+    // private static void runLauncherDefend(RobotController rc) throws GameActionException {
+    //     moveToOutsideRadius(rc, defendPoint, 9);
+    //     if (rc.isMovementReady()) {
+    //         Direction rdmMove = Random.nextDir();
+    //         if (rc.canMove(rdmMove)) {
+    //             rc.move(rdmMove);
+    //         }
+    //     }
+    // }
 
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString(""+onTarget);
