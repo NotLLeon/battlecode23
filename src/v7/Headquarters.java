@@ -51,10 +51,13 @@ public class Headquarters extends Robot {
 //         }
         int currRobotCount = rc.getRobotCount();
         RobotInfo[] nearby_robots = rc.senseNearbyRobots();
+
+        RobotInfo enemyLauncher = null;
         int enemyLaunchers = 0;
         for(RobotInfo robot : nearby_robots) {
             if(robot.getType() == RobotType.LAUNCHER && robot.getTeam() != rc.getTeam()) {
                 enemyLaunchers++;
+                enemyLauncher = robot;
             }
         }
 
@@ -116,6 +119,9 @@ public class Headquarters extends Robot {
         if(currRobotCount > (rc.getMapHeight()*rc.getMapWidth())/5) return;
 
         Direction launcherDir = closeEnemyHqLoc == null ? dirToCent : curLoc.directionTo(closeEnemyHqLoc);
+        if (enemyLauncher != null) {
+            launcherDir = curLoc.directionTo(enemyLauncher.getLocation()).opposite();
+        }
         while(!shouldSave && buildInDir(rc, RobotType.LAUNCHER, launcherDir));
         boolean keepBuilding = true;
         while(!shouldSave && keepBuilding) {
