@@ -41,6 +41,12 @@ public class Explore {
             weights[Random.getDirectionOrderNum(curLoc.directionTo(wall))] = 0;
         }
 
+        for (Direction dir : Random.directions) {
+            if (!rc.onTheMap(curLoc.add(dir).add(dir))) {
+                weights[Random.getDirectionOrderNum(dir)] = 0;
+            }
+        }
+
         RobotInfo [] robots = rc.senseNearbyRobots();
         for(RobotInfo robot : robots) {
             if((robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) && robot.getTeam() != rc.getTeam()) {
