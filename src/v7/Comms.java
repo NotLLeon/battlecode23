@@ -293,6 +293,9 @@ public class Comms {
         rc.writeSharedArray(Constants.IDX_POSSIBLE_SYMS, syms);
     }
 
+    /**
+     *     first bit - Horizontal symmetry, second bit - Vertical, third bit - Rotational
+     */
     public static int getPossibleSyms(RobotController rc) throws GameActionException {
         return rc.readSharedArray(Constants.IDX_POSSIBLE_SYMS);
     }
