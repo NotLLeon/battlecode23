@@ -15,35 +15,11 @@ public class Headquarters extends Robot {
     static int saveMn = 0;
     static int saveAd = 0;
 
-    public enum Symmetry {
-        ROTATIONAL,
-        HORIZONTAL,
-        VERTICAL
-    }
-
     static void runHeadquarters(RobotController rc, int turnCount) throws GameActionException {
         // Pick a direction to build in.
         MapLocation curLoc = rc.getLocation();
 
-        if(turnCount == 1) {
-            if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
-            Comms.writeHQ(rc, rc.getLocation());
-            hqCount = rc.getRobotCount();
-
-            WellInfo[] wells = rc.senseNearbyWells();
-            for (WellInfo well : wells) {
-                if(well.getResourceType() == ResourceType.MANA) closeWellLoc = well.getMapLocation();
-                Comms.writeWellLoc(rc, well);
-            }
-
-            RobotInfo[] robots = rc.senseNearbyRobots();
-            for(RobotInfo robot: robots) {
-                if(robot.getType() == RobotType.HEADQUARTERS && robot.getTeam() != rc.getTeam()) {
-                    closeEnemyHqLoc = robot.getLocation();
-                    break;
-                }
-            }
-        }
+        if(turnCount == 1) firstTurn(rc);
 //        else if (turnCount == 2) {
         // unused for now
 //            Symmetry[] possibleSyms = getSymmetry(rc);
@@ -149,6 +125,80 @@ public class Headquarters extends Robot {
 //            }
 //        }
 //    }
+    static void firstTurn(RobotController rc) throws GameActionException {
+        if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
+        int numHqs = Comms.getNumHQs(rc);
+        if(numHqs == 0) {
+            numHqs = rc.getRobotCount();
+            Comms.writeNumHQs(rc, numHqs);
+        }
+        Comms.writeHQ(rc, rc.getLocation());
+
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well : wells) {
+            if(well.getResourceType() == ResourceType.MANA) closeWellLoc = well.getMapLocation();
+            Comms.writeWellLoc(rc, well);
+        }
+
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot: robots) {
+            if(robot.getType() == RobotType.HEADQUARTERS && robot.getTeam() != rc.getTeam()) {
+                closeEnemyHqLoc = robot.getLocation();
+                Comms.writeEnemyHqLoc(rc, closeEnemyHqLoc);
+            }
+        }
+
+        // Get current hq idx
+        MapLocation[] friendlyHqs = Comms.getHQs(rc);
+        int hqIdx = 0;
+        for(int i = 0; i < Constants.MAX_HQS_STORED; ++i) {
+            MapLocation curHqLoc = friendlyHqs[i];
+            if(curHqLoc.equals(rc.getLocation())) {
+                hqIdx = i;
+                break;
+            }
+        }
+        // For the last HQ, start ruling out symmetries
+        if(hqIdx == numHqs - 1) {
+            ruleOutSymmetries(rc);
+            Comms.wipeEnemyHqLocs(rc);
+//            rc.setIndicatorString("syms: "+Comms.getPossibleSyms(rc));
+        }
+    }
+
+    private static void ruleOutSymmetries(RobotController rc) throws GameActionException {
+        MapLocation[] enemyHqs = Comms.getEnemyHqLocs(rc);
+        MapLocation[] allyHqs = Comms.getHQs(rc);
+        int mapH = rc.getMapHeight();
+        int mapW = rc.getMapWidth();
+        // first bit - H, second bit - V, third bit - R
+        int possibleSyms = 7;
+        int radius = RobotType.HEADQUARTERS.visionRadiusSquared;
+
+        // check H
+        for(MapLocation cur : allyHqs) {
+            MapLocation[] images = {
+                    new MapLocation(cur.x, mapH-cur.y-1),
+                    new MapLocation(mapW-cur.x-1, cur.y),
+                    new MapLocation(mapW-cur.x-1, mapH-cur.y-1)
+            };
+            for(int i = 0; i < 3; ++i) {
+                for (MapLocation ally : allyHqs) {
+                    if (ally.isWithinDistanceSquared(images[i], radius)) {
+                        boolean canSee = false;
+                        for (MapLocation enemy : enemyHqs) {
+                            if (enemy.equals(images[i])) {
+                                canSee = true;
+                                break;
+                            }
+                        }
+                        if(!canSee) possibleSyms &= (7-(1<<i));
+                    }
+                }
+            }
+        }
+        Comms.writePossibleSyms(rc, possibleSyms);
+    }
 
     static boolean buildInDir(RobotController rc, RobotType type, Direction dir) throws GameActionException {
         if(!rc.isActionReady()
@@ -197,30 +247,5 @@ public class Headquarters extends Robot {
                 curLoc.add(dir).add(dir.rotateRight()),
                 curLoc.add(dir)
         };
-    }
-
-    static Symmetry[] getSymmetry(RobotController rc) throws GameActionException {
-        int mapH = rc.getMapHeight();
-        int mapW = rc.getMapWidth();
-        MapLocation[] hqs = Comms.getHQs(rc);
-        int canRot = 1;
-        int canHor = 1;
-        int canVer= 1;
-        for(MapLocation hq1 : hqs) {
-            for(MapLocation hq2 : hqs) {
-                boolean oppX = (mapW-hq1.x-1) == hq2.x;
-                boolean oppY = (mapH-hq1.y-1) == hq2.y;
-                if(oppX && oppY) canRot = 0;
-                if(oppX) canHor = 0;
-                if(oppY) canVer = 0;
-            }
-        }
-        int numSyms = canRot + canHor + canVer;
-        Symmetry[] possibleSyms = new Symmetry[numSyms];
-        int ind = 0;
-        if(canRot == 1) possibleSyms[ind++] = Symmetry.ROTATIONAL;
-        if(canHor == 1) possibleSyms[ind++] = Symmetry.HORIZONTAL;
-        if(canVer == 1) possibleSyms[ind] = Symmetry.VERTICAL;
-        return possibleSyms;
     }
 }

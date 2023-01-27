@@ -38,16 +38,28 @@ public class Comms {
         int numHqs = getNumHQs(rc);
         MapLocation [] hqs = new MapLocation[numHqs];
         for (int i = 0; i < numHqs; ++i) {
-            hqs[i] = decodeHQLoc(rc, rc.readSharedArray(i));
+            int encodedLoc = rc.readSharedArray(i);
+            if(encodedLoc == 0) hqs[i] = null;
+            else hqs[i] = decodeHQLoc(rc, encodedLoc);
         }
         return hqs;
     }
 
     public static void writeHQ(RobotController rc, MapLocation loc) throws GameActionException {
         int numHQs = getNumHQs(rc);
-        rc.writeSharedArray(numHQs, encodeHQLoc(rc, loc));
-        rc.writeSharedArray(Constants.IDX_NUM_HQS, numHQs + 1);
+        for(int i = 0; i < numHQs; ++i) {
+            int cur = rc.readSharedArray(i);
+            if(cur == 0) {
+                rc.writeSharedArray(i, encodeHQLoc(rc, loc));
+                break;
+            }
+        }
+//        rc.writeSharedArray(Constants.IDX_NUM_HQS, numHQs + 1);
         //wellsStartIdx++;
+    }
+
+    public static void writeNumHQs(RobotController rc, int num) throws GameActionException {
+        rc.writeSharedArray(Constants.IDX_NUM_HQS, num);
     }
 
     public static void setTotalMana(RobotController rc, int total_mana) throws GameActionException{
@@ -252,5 +264,39 @@ public class Comms {
             if((curSignal & (1 << i)) != 0) distressLocs[ind++] = hqLocs[i];
         }
         return distressLocs;
+    }
+
+
+    private static final int enemyHqStartIdx = islandsStartIdx;
+    public static void writeEnemyHqLoc(RobotController rc, MapLocation loc) throws GameActionException {
+        int numEnemyHqs = rc.readSharedArray(Constants.IDX_NUM_ISLANDS);
+        rc.writeSharedArray(enemyHqStartIdx + numEnemyHqs, encodeLoc(rc, loc));
+        rc.writeSharedArray(Constants.IDX_NUM_ISLANDS, numEnemyHqs+1);
+    }
+
+    public static MapLocation[] getEnemyHqLocs(RobotController rc) throws GameActionException {
+        int numEnemyHqs = rc.readSharedArray(Constants.IDX_NUM_ISLANDS);
+        MapLocation[] enemyHqLocs = new MapLocation[numEnemyHqs];
+        for(int i = 0; i < numEnemyHqs; ++i) {
+            enemyHqLocs[i] = decodeLoc(rc, rc.readSharedArray(enemyHqStartIdx + i));
+        }
+        return enemyHqLocs;
+    }
+
+    public static void wipeEnemyHqLocs(RobotController rc) throws GameActionException {
+        int numEnemyHqs = rc.readSharedArray(Constants.IDX_NUM_ISLANDS);
+        for(int i = 0; i < numEnemyHqs; ++i) rc.writeSharedArray(enemyHqStartIdx + i, 0);
+        rc.writeSharedArray(Constants.IDX_NUM_ISLANDS, 0);
+    }
+
+    public static void writePossibleSyms(RobotController rc, int syms) throws GameActionException {
+        rc.writeSharedArray(Constants.IDX_POSSIBLE_SYMS, syms);
+    }
+
+    /**
+     *     first bit - Horizontal symmetry, second bit - Vertical, third bit - Rotational
+     */
+    public static int getPossibleSyms(RobotController rc) throws GameActionException {
+        return rc.readSharedArray(Constants.IDX_POSSIBLE_SYMS);
     }
 }
