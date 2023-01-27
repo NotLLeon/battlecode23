@@ -148,25 +148,26 @@ public class Carrier extends Robot {
         RobotInfo[] robotInfo = rc.senseNearbyRobots();
 
         for (RobotInfo robot : robotInfo) {
+            // FIXME: jank
             if (robot.getTeam() != rc.getTeam() && robot.getType() == RobotType.LAUNCHER) {
                 MapLocation enemyLoc = robot.getLocation();
-
+                MapLocation loc1 = rc.getLocation();
                 Direction dir = rc.getLocation().directionTo(robot.getLocation()).opposite();
                 Direction dir_left = dir.rotateLeft();
                 Direction dir_right = dir.rotateRight();
-                if (rc.canMove(dir)) rc.move(dir);
-                else if (rc.canMove(dir_left)) rc.move(dir_left);
-                else if (rc.canMove(dir_right))rc.move(dir_right);
-                else {
+                while (rc.canMove(dir)) rc.move(dir);
+                while (rc.canMove(dir_left)) rc.move(dir_left);
+                while (rc.canMove(dir_right)) rc.move(dir_right);
+                if(loc1.equals(rc.getLocation())) {
                     Direction dir_to = dir.opposite();
                     Direction dir_to_left = dir_to.rotateLeft();
                     Direction dir_to_right = dir_to.rotateRight();
-                    if (rc.canMove(dir_to)) rc.move(dir_to);
-                    else if (rc.canMove(dir_to_left)) rc.move(dir_to_left);
-                    else if (rc.canMove(dir_to_right)) rc.move(dir_to_right);
-
-                    if(rc.canAttack(robot.getLocation())) rc.attack(enemyLoc);
+                    while (rc.canMove(dir_to)) rc.move(dir_to);
+                    while (rc.canMove(dir_to_left)) rc.move(dir_to_left);
+                    while (rc.canMove(dir_to_right)) rc.move(dir_to_right);
+                    if (rc.canAttack(robot.getLocation())) rc.attack(enemyLoc);
                 }
+                break;
             }
         }
 
@@ -406,25 +407,17 @@ public class Carrier extends Robot {
 
     private static void runCarrierCollecting(RobotController rc) throws GameActionException {
         //rc.setIndicatorString("COLLECTING");
-
-        boolean ret = true;
-        while (rc.canCollectResource(current_objective, -1)
-                && (rc.getResourceAmount(ResourceType.ADAMANTIUM)
-                +rc.getResourceAmount(ResourceType.MANA)
-                +rc.getResourceAmount(ResourceType.ELIXIR)) < 39) {
-            ret = false;
-            // if (rng.nextBoolean()) {
-            rc.collectResource(current_objective, -1);
-//            rc.setIndicatorString("Collecting, now have, AD:" +
-//                    rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-//                    " MN: " + rc.getResourceAmount(ResourceType.MANA) +
-//                    " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-            // }
-        }
-        if(ret) {
+        if(!rc.getLocation().isAdjacentTo(current_objective)) {
+            state = CARRIER_STATE.MOVE_TO_WELL;
+            runCarrierState(rc);
+        } else if(rc.getWeight() >= 39) {
             current_objective = getClosestHQ(rc);
             state = CARRIER_STATE.RETURNING;
             runCarrierState(rc);
+        } else {
+            while (rc.canCollectResource(current_objective, -1)){
+                rc.collectResource(current_objective, -1);
+            }
         }
     }
 

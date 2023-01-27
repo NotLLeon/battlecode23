@@ -48,9 +48,19 @@ public class Launcher extends Robot {
         if(state != LAUNCHER_STATE.ON_TARGET) {
             MapLocation[] distress = Comms.getDistressLocations(rc);
             if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
-                state = LAUNCHER_STATE.DEFEND;
-                defendPoint = distress[Random.nextInt(distress.length)];
-            } 
+                if(rc.getRoundNum() > 200) {
+                    state = LAUNCHER_STATE.DEFEND;
+                    defendPoint = distress[Random.nextInt(distress.length)];
+                } else {
+                    for(MapLocation disLoc : distress) {
+                        if(disLoc.equals(originHq)) {
+                            state = LAUNCHER_STATE.DEFEND;
+                            defendPoint = disLoc;
+                            break;
+                        }
+                    }
+                }
+            }
             else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
                 // state = LAUNCHER_STATE.GOTO_LOCATION;
                 state = LAUNCHER_STATE.PATROL;
@@ -60,15 +70,9 @@ public class Launcher extends Robot {
             // }
         }
 
-        MapLocation[] distress = Comms.getDistressLocations(rc);
-        if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
-            state = LAUNCHER_STATE.DEFEND;
-            defendPoint = distress[Random.nextInt(distress.length)];
-        } 
-
         runLauncherState(rc);
-        if(shot == null) shot = tryToShoot(rc);
-        if(shot == null) takePotshot(rc);
+        tryToShoot(rc);
+        takePotshot(rc);
     }
     private static void runLauncherState(RobotController rc) throws GameActionException {
         switch (state) {
@@ -103,7 +107,13 @@ public class Launcher extends Robot {
     }
 
     private static void runLauncherDefend(RobotController rc) throws GameActionException {
-        moveToRadius(rc, defendPoint, 3);
+        moveToOutsideRadius(rc, defendPoint, 9);
+        if (rc.isMovementReady()) {
+            Direction rdmMove = Random.nextDir();
+            if (rc.canMove(rdmMove)) {
+                rc.move(rdmMove);
+            }
+        }
     }
 
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
@@ -136,6 +146,7 @@ public class Launcher extends Robot {
 
     private static ArrayList<MapLocation> shotLocs = new ArrayList<MapLocation>();
     private static void takePotshot(RobotController rc) throws GameActionException {
+        if(!rc.isActionReady()) return;
         shotLocs.clear();
         MapLocation curLoc = rc.getLocation();
         // shoot randomly at a position that is out of vision
@@ -163,6 +174,7 @@ public class Launcher extends Robot {
     }
 
     private static MapLocation tryToShoot(RobotController rc) throws GameActionException {
+        if(!rc.isActionReady()) return null;
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
