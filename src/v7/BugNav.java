@@ -29,16 +29,16 @@ public class BugNav {
     private static void reset() {
         softReset();
         turnsTracingObstacle = 0;
+        curDest = null;
+        collisionLoc = null;
+        obstacle = false;
         changedTrace = false;
     }
 
     private static void softReset() {
         pastLocs = new MapLocation[numPastLocs];
         locIndex = -1;
-        curDest = null;
 //        assumedLoc = null;
-        collisionLoc = null;
-        obstacle = false;
         isReachable = true;
     }
 
@@ -86,6 +86,7 @@ public class BugNav {
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
+//        rc.setIndicatorString(""+changedTrace);
 //        rc.setIndicatorString(locIndex + Arrays.toString(pastLocs));
 //        rc.setIndicatorDot(rc.getLocation(), 256, 0, 0);
         // Bug2
@@ -177,11 +178,14 @@ public class BugNav {
                 return Direction.CENTER;
             }
 
-            if(turnsTracingObstacle > 10 && !changedTrace) {
+            if(turnsTracingObstacle > 10 && !changedTrace && curLoc.distanceSquaredTo(dest) >= dis + 64) {
                 changedTrace = true;
                 traceLeft = !traceLeft;
+                traceDir = traceDir.opposite();
                 softReset();
-                return getDir(rc, dest);
+                Direction recDir = getDir(rc, dest);
+                collisionLoc = curLoc;
+                return recDir;
             }
 
             if(traceLeft) nextDir = traceDir.rotateRight().rotateRight();
