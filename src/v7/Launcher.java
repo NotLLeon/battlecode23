@@ -11,6 +11,7 @@ public class Launcher extends Robot {
     private static int targetInd = 0;
     private static int roundsNearTarget = 0;
     private static MapLocation defendPoint = null;
+    private static boolean knowSymmetry = false;
 
     static MapLocation meet = null;
 
@@ -137,7 +138,15 @@ public class Launcher extends Robot {
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString(""+onTarget);
         MapLocation curTarget = targets[targetInd];
-        moveToRadius(rc, curTarget, 4);
+        
+        if (!knowSymmetry) {
+            moveToRadius(rc, curTarget, 4);
+        } else {
+            moveToOutsideRadius(rc, curTarget, 12);
+            if (rc.isMovementReady()) {
+                state = LAUNCHER_STATE.ON_TARGET;
+            }
+        }
         MapLocation curLoc = rc.getLocation();
 
         if(rc.canSenseLocation(curTarget)) {
@@ -147,7 +156,7 @@ public class Launcher extends Robot {
             } else {
                 locIgnore[targetInd] = true;
                 nextTarget();
-                if (curLoc.distanceSquaredTo(originHq) * 3 < curLoc.distanceSquaredTo(targets[targetInd])) {
+                if (curLoc.distanceSquaredTo(originHq) * 2 < curLoc.distanceSquaredTo(targets[targetInd])) {
                     state = LAUNCHER_STATE.RETURNING;
                 }
             }
@@ -170,7 +179,7 @@ public class Launcher extends Robot {
         for (RobotInfo rob : nearbyRobots) {
             if (rob.getType() == RobotType.LAUNCHER && rc.getID() > rob.getID()) numLaunchers++;
         }
-        if (numLaunchers > 4) {
+        if (numLaunchers > 3) {
             nextTarget();
             state = LAUNCHER_STATE.PATROL;
         }
@@ -276,52 +285,83 @@ public class Launcher extends Robot {
         lastSymState = syms;
         int mapW = rc.getMapWidth();
         int mapH = rc.getMapHeight();
+        
+        MapLocation closestHorz = new MapLocation(0, 0);
+        MapLocation closestVert = new MapLocation(0, 0);
+        MapLocation closestRot = new MapLocation(0, 0);
+
+        int horMax = 2 * 60 * 60;
+        int vertMax = 2 * 60 * 60;
+        int rotMax = 2 * 60 * 60;
+        for (MapLocation hq : Hqs) {
+            MapLocation vertTr = new MapLocation(
+                mapW-hq.x-1,
+                hq.y
+            );
+            MapLocation horTr = new MapLocation(
+                    hq.x,
+                    mapH-hq.y-1
+            );
+            MapLocation rotTr = new MapLocation(
+                mapW-hq.x-1,
+                mapH-hq.y-1
+            );
+            if (originHq.distanceSquaredTo(vertTr) < vertMax) {
+                vertMax = originHq.distanceSquaredTo(vertTr);
+                closestVert = vertTr;
+            }
+            if (originHq.distanceSquaredTo(horTr) < horMax) {
+                horMax = originHq.distanceSquaredTo(horTr);
+                closestHorz = horTr;
+            }
+            if (originHq.distanceSquaredTo(rotTr) < rotMax) {
+                rotMax = originHq.distanceSquaredTo(rotTr);
+                closestRot = rotTr;
+            }
+        }
 
         if (syms == 1) {
-            MapLocation[] temp = new MapLocation[Hqs.length];
+            MapLocation[] temp = new MapLocation[Hqs.length + 1];
             for (int i = 0; i < Hqs.length; i++) {
-                temp[i] = new MapLocation(Hqs[i].x, mapH-Hqs[i].y-1);
+                temp[i+1] = new MapLocation(Hqs[i].x, mapH-Hqs[i].y-1);
             }
+            temp[0] = new MapLocation(originHq.x, mapH-originHq.y - 1);
             targets = temp;
             locsyms = new SYMMETRY_CHECK[]{};
             locIgnore = new boolean[]{};
+            knowSymmetry = true;
         } else if (syms == 2) {
-            MapLocation[] temp = new MapLocation[Hqs.length];
+            MapLocation[] temp = new MapLocation[Hqs.length + 1];
             for (int i = 0; i < Hqs.length; i++) {
-                temp[i] = new MapLocation(mapW-Hqs[i].x-1, Hqs[i].y);
+                temp[i+1] = new MapLocation(mapW-Hqs[i].x-1, Hqs[i].y);
             }
+            temp[0] = new MapLocation(mapW-originHq.x-1, originHq.y);
             targets = temp;
             locsyms = new SYMMETRY_CHECK[]{};
             locIgnore = new boolean[]{};
+            knowSymmetry = true;
         } else if (syms == 4) {
-            MapLocation[] temp = new MapLocation[Hqs.length];
+            MapLocation[] temp = new MapLocation[Hqs.length + 1];
             for (int i = 0; i < Hqs.length; i++) {
-                temp[i] = new MapLocation(mapW-Hqs[i].x-1, mapH-Hqs[i].y-1);
+                temp[i+1] = new MapLocation(mapW-Hqs[i].x-1, mapH-Hqs[i].y-1);
             }
+            temp[0] = new MapLocation(mapW-originHq.x-1, mapH-originHq.y-1);
             targets = temp;
             locsyms = new SYMMETRY_CHECK[]{};
             locIgnore = new boolean[]{};
+            knowSymmetry = true;
         } else if (syms == 7) {
             targets = new MapLocation[4];
             locsyms = new SYMMETRY_CHECK[4];
             locIgnore = new boolean[4];
 
-            targets[0] = new MapLocation(
-                    mapW-originHq.x-1,
-                    originHq.y
-            );
-            targets[1] = new MapLocation(
-                    originHq.x,
-                    mapH-originHq.y-1
-            );
-            targets[2] = new MapLocation(
-                mapW-originHq.x-1,
-                mapH-originHq.y-1
-            );
+            targets[0] = closestVert;
+            targets[1] = closestHorz;
+            targets[2] = closestRot;
             targets[3] = originHq;
     
-            int t1 = 60 * 60;
-            int t2 = 60 * 60;
+            int t1 = 2 * 60 * 60;
+            int t2 = 2 * 60 * 60;
             for (MapLocation hq : Hqs) {
                 int t1dist = hq.distanceSquaredTo(targets[0]);
                 int t2dist = hq.distanceSquaredTo(targets[1]);
@@ -361,14 +401,8 @@ public class Launcher extends Robot {
 
             if (horz && vert) {
                 // compare the 2 to see what is longer
-                targets[0] = new MapLocation(
-                        mapW-originHq.x-1,
-                        originHq.y
-                );
-                targets[1] = new MapLocation(
-                        originHq.x,
-                        mapH-originHq.y-1
-                );
+                targets[0] = closestVert;
+                targets[1] = closestHorz;
                 targets[2] = originHq;
         
                 int t1 = 60 * 60;
@@ -397,14 +431,14 @@ public class Launcher extends Robot {
                 }
             } else {
                 if (horz) {
-                    targets[0] = new MapLocation(originHq.x, mapH-originHq.y-1);
+                    targets[0] = closestHorz;
                     locsyms[0] = SYMMETRY_CHECK.HORIZONTAL;
                 } else if (vert) {
-                    targets[0] = new MapLocation(mapW-originHq.x-1, originHq.y);
+                    targets[0] = closestVert;
                     locsyms[0] = SYMMETRY_CHECK.VERTICAL;
                 }
 
-                targets[1] = new MapLocation(mapW-originHq.x-1, mapH-originHq.y-1);
+                targets[1] = closestRot;
                 targets[2] = originHq;
                 locsyms[1] = SYMMETRY_CHECK.ROTATIONAL;
                 locsyms[2] = SYMMETRY_CHECK.BASE;
