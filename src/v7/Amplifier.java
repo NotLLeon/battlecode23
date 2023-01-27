@@ -2,9 +2,6 @@ package v7;
 
 import battlecode.common.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class Amplifier extends Robot {
 
     static MapLocation baseHQ;
