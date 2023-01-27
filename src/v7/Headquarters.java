@@ -23,6 +23,8 @@ public class Headquarters extends Robot {
         MapLocation curLoc = rc.getLocation();
 
         if(turnCount == 1) {
+            // TODO: REMOVE THIS WHEN SCRIMS
+            buildInDir(rc, RobotType.AMPLIFIER, Random.nextDir());
             if(rc.getMapHeight() < 30 && rc.getMapWidth() < 30) smallMap = true;
             Comms.writeHQ(rc, rc.getLocation());
             hqCount = rc.getRobotCount();
