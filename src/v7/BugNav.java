@@ -190,8 +190,8 @@ public class BugNav {
                 return recDir;
             }
 
-            if(traceLeft) nextDir = traceDir.rotateRight();//.rotateRight();
-            else nextDir = traceDir.rotateLeft();//.rotateLeft();
+            if(traceLeft) nextDir = traceDir.rotateRight().rotateRight();
+            else nextDir = traceDir.rotateLeft().rotateLeft();
         }
         for(int i = 0; i < 8; ++i) {
             if(isPassable(rc, nextDir)) {
