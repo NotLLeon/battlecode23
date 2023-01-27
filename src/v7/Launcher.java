@@ -18,15 +18,32 @@ public class Launcher extends Robot {
         GOTO_LOCATION, PATROL, DEFEND, ON_TARGET
     };
 
+    enum SYMMETRY_CHECK {
+        HORIZONTAL(1), VERTICAL(2), ROTATIONAL(4), BASE(0);
+
+        private int corres;
+        private int getVal() {
+            return corres;
+        }
+        private SYMMETRY_CHECK(int corres) {
+            this.corres = corres;
+        }
+    }
+
     static LAUNCHER_STATE state = LAUNCHER_STATE.PATROL;
+    // used to rule out symmetries while exploring
+    static SYMMETRY_CHECK[] locsyms;
+    static boolean[] locIgnore;
+    static int lastSymState = -1;
 
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
-        rc.setIndicatorString("" + state);
+        // rc.setIndicatorString("" + state);
         if(turnCount == 1) {
             originHq = getClosestHQ(rc);
-            generateTargets(rc);
         }
-        setMeetLocation(rc, turnCount);
+
+        generateTargets(rc);
+        // setMeetLocation(rc, turnCount);
         MapLocation curLoc = rc.getLocation();
         MapLocation shot = tryToShoot(rc);
         if(shot != null && state != LAUNCHER_STATE.ON_TARGET) {
@@ -80,6 +97,7 @@ public class Launcher extends Robot {
             case DEFEND:        runLauncherDefend(rc); break;
             case PATROL:        runLauncherPatrol(rc); break;
             case ON_TARGET:     runLauncherOnTarget(rc); break;
+            // case RETURNING:     runLauncherReturning(rc); break;
         }
     }
 
@@ -119,30 +137,37 @@ public class Launcher extends Robot {
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString(""+onTarget);
         MapLocation curLoc = rc.getLocation();
-        if(state != LAUNCHER_STATE.ON_TARGET){
-            MapLocation curTarget = targets[targetInd];
-            moveToOutsideRadius(rc, curTarget, 10);
-            if(rc.canSenseLocation(curTarget)) {
-                if(canSeeHq(rc)) {
-                    state = LAUNCHER_STATE.ON_TARGET;
-                    runLauncherState(rc);
-                } else {
-                    nextTarget();
-                }
-            } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
-                roundsNearTarget++;
-            }
-            if(!isReachable(rc, curTarget) || roundsNearTarget > 15) {
+        MapLocation curTarget = targets[targetInd];
+        moveToOutsideRadius(rc, curTarget, 4);
+        if(rc.canSenseLocation(curTarget)) {
+            if(canSeeHq(rc)) {
+                state = LAUNCHER_STATE.ON_TARGET;
+                runLauncherState(rc);
+            } else {
                 nextTarget();
             }
+        } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
+            roundsNearTarget++;
+        }
+        if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
+            nextTarget();
         }
     }
     private static void runLauncherOnTarget(RobotController rc) throws GameActionException {
         MapLocation curTarget = targets[targetInd];
         if(curTarget.distanceSquaredTo(rc.getLocation()) == 25) return;
         moveToOutsideRadius(rc, curTarget, 16);
-    }
+        
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(4, rc.getTeam());
+        int numLaunchers = 0;
 
+        for (RobotInfo rob : nearbyRobots) {
+            if (rob.getType() == RobotType.LAUNCHER && rc.getID() < rob.getID()) numLaunchers++;
+        }
+        if (numLaunchers > 5) {
+            nextTarget();
+        }
+    }
 
     private static ArrayList<MapLocation> shotLocs = new ArrayList<MapLocation>();
     private static void takePotshot(RobotController rc) throws GameActionException {
@@ -213,52 +238,149 @@ public class Launcher extends Robot {
     }
 
     private static void generateTargets(RobotController rc) throws GameActionException {
+        int syms = Comms.getPossibleSyms(rc);
+        rc.setIndicatorString("SYMS: " + syms);
+        // if (syms == lastSymState) { return; }
+        
+        // % 2 for horz, /2 %2 for vert, /4 for rotational
         MapLocation [] Hqs = Comms.getHQs(rc);
 
+        lastSymState = syms;
         int mapW = rc.getMapWidth();
         int mapH = rc.getMapHeight();
 
-        targets = new MapLocation[3];
-        targets[0] = new MapLocation(
+        if (syms == 1) {
+            MapLocation[] temp = new MapLocation[Hqs.length];
+            for (int i = 0; i < Hqs.length; i++) {
+                temp[i] = new MapLocation(Hqs[i].x, mapH-Hqs[i].y-1);
+            }
+            targets = temp;
+            locsyms = new SYMMETRY_CHECK[]{};
+            locIgnore = new boolean[]{};
+        } else if (syms == 2) {
+            MapLocation[] temp = new MapLocation[Hqs.length];
+            for (int i = 0; i < Hqs.length; i++) {
+                temp[i] = new MapLocation(mapW-Hqs[i].x-1, Hqs[i].y);
+            }
+            targets = temp;
+            locsyms = new SYMMETRY_CHECK[]{};
+            locIgnore = new boolean[]{};
+        } else if (syms == 4) {
+            MapLocation[] temp = new MapLocation[Hqs.length];
+            for (int i = 0; i < Hqs.length; i++) {
+                temp[i] = new MapLocation(mapW-Hqs[i].x-1, mapH-Hqs[i].y-1);
+            }
+            targets = temp;
+            locsyms = new SYMMETRY_CHECK[]{};
+            locIgnore = new boolean[]{};
+        } else if (syms == 7) {
+            targets = new MapLocation[4];
+            locsyms = new SYMMETRY_CHECK[4];
+            locIgnore = new boolean[4];
+
+            targets[0] = new MapLocation(
+                    mapW-originHq.x-1,
+                    originHq.y
+            );
+            targets[1] = new MapLocation(
+                    originHq.x,
+                    mapH-originHq.y-1
+            );
+            targets[2] = new MapLocation(
                 mapW-originHq.x-1,
-                originHq.y
-        );
-        targets[1] = new MapLocation(
-                originHq.x,
                 mapH-originHq.y-1
-        );
-        targets[2] = new MapLocation(
-            mapW-originHq.x-1,
-            mapH-originHq.y-1
-        );
-
-        int t1 = 60 * 60;
-        int t2 = 60 * 60;
-        for (MapLocation hq : Hqs) {
-            int t1dist = hq.distanceSquaredTo(targets[0]);
-            int t2dist = hq.distanceSquaredTo(targets[1]);
-            if (t1dist < t1) {
-                t1 = t1dist;
+            );
+            targets[3] = originHq;
+    
+            int t1 = 60 * 60;
+            int t2 = 60 * 60;
+            for (MapLocation hq : Hqs) {
+                int t1dist = hq.distanceSquaredTo(targets[0]);
+                int t2dist = hq.distanceSquaredTo(targets[1]);
+                if (t1dist < t1) {
+                    t1 = t1dist;
+                }
+                if (t2dist < t2) {
+                    t2 = t2dist;
+                }
             }
-            if (t2dist < t2) {
-                t2 = t2dist;
+            if (t2 < t1) {
+                MapLocation temp = targets[0];
+                targets[0] = targets[1];
+                targets[1] = targets[2];
+                targets[2] = temp;
+                locsyms[0] = SYMMETRY_CHECK.HORIZONTAL;
+                locsyms[1] = SYMMETRY_CHECK.ROTATIONAL;
+                locsyms[2] = SYMMETRY_CHECK.VERTICAL;
+                locsyms[3] = SYMMETRY_CHECK.BASE;
+            } else {
+                MapLocation temp = targets[1];
+                targets[1] = targets[2];
+                targets[2] = temp;
+                locsyms[0] = SYMMETRY_CHECK.VERTICAL;
+                locsyms[1] = SYMMETRY_CHECK.ROTATIONAL;
+                locsyms[2] = SYMMETRY_CHECK.HORIZONTAL;
+                locsyms[3] = SYMMETRY_CHECK.BASE;
             }
-        }
-        if (t2 > t1) {
-            MapLocation temp = targets[0];
-            targets[0] = targets[1];
-            targets[1] = targets[2];
-            targets[2] = temp;
         } else {
-            MapLocation temp = targets[1];
-            targets[1] = targets[2];
-            targets[2] = temp;
-        }
+            boolean horz = syms % 2 == 1;
+            boolean vert = (syms / 2) % 2 == 1;
+            boolean rot = (syms / 4) == 1;
+            
+            targets = new MapLocation[3];
+            locsyms = new SYMMETRY_CHECK[3];
+            locIgnore = new boolean[3];
 
-        if (Hqs.length == 1 && Math.abs(originHq.x - mapW/2) > mapW*3/8 && Math.abs(originHq.y - mapH/2) > mapH*3/8) {
-            MapLocation temp = targets[1];
-            targets[1] = targets[0];
-            targets[0] = temp;
+            if (horz && vert) {
+                // compare the 2 to see what is longer
+                targets[0] = new MapLocation(
+                        mapW-originHq.x-1,
+                        originHq.y
+                );
+                targets[1] = new MapLocation(
+                        originHq.x,
+                        mapH-originHq.y-1
+                );
+                targets[2] = originHq;
+        
+                int t1 = 60 * 60;
+                int t2 = 60 * 60;
+                for (MapLocation hq : Hqs) {
+                    int t1dist = hq.distanceSquaredTo(targets[0]);
+                    int t2dist = hq.distanceSquaredTo(targets[1]);
+                    if (t1dist < t1) {
+                        t1 = t1dist;
+                    }
+                    if (t2dist < t2) {
+                        t2 = t2dist;
+                    }
+                }
+                if (t2 > t1) {
+                    MapLocation temp = targets[0];
+                    targets[0] = targets[1];
+                    targets[1] = temp;
+                    locsyms[0] = SYMMETRY_CHECK.HORIZONTAL;
+                    locsyms[1] = SYMMETRY_CHECK.VERTICAL;
+                    locsyms[2] = SYMMETRY_CHECK.BASE;
+                } else {
+                    locsyms[0] = SYMMETRY_CHECK.VERTICAL;
+                    locsyms[1] = SYMMETRY_CHECK.HORIZONTAL;
+                    locsyms[2] = SYMMETRY_CHECK.BASE;
+                }
+            } else {
+                if (horz) {
+                    targets[0] = new MapLocation(originHq.x, mapH-originHq.y-1);
+                    locsyms[0] = SYMMETRY_CHECK.HORIZONTAL;
+                } else if (vert) {
+                    targets[0] = new MapLocation(mapW-originHq.x-1, originHq.y);
+                    locsyms[0] = SYMMETRY_CHECK.VERTICAL;
+                }
+
+                targets[1] = new MapLocation(mapW-originHq.x-1, mapH-originHq.y-1);
+                targets[2] = originHq;
+                locsyms[1] = SYMMETRY_CHECK.ROTATIONAL;
+                locsyms[2] = SYMMETRY_CHECK.BASE;
+            }
         }
     }
 
