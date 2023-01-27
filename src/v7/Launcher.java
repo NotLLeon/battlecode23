@@ -155,6 +155,7 @@ public class Launcher extends Robot {
             roundsNearTarget++;
         }
         if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
+            if (!isReachable(rc, curTarget)) { locIgnore[targetInd] = true; }
             nextTarget();
         }
         rc.setIndicatorDot(targets[targetInd], 0, 255, 0);
@@ -181,15 +182,16 @@ public class Launcher extends Robot {
 
     private static void pruneSymmetries(RobotController rc) throws GameActionException {
         if (rc.canWriteSharedArray(Constants.IDX_POSSIBLE_SYMS, lastSymState) && locsyms.length > 0 && lastSymState > 0) {
+            int sym = Comms.getPossibleSyms(rc);
             for (int i = 0; i < locsyms.length; i++) {
                 if (locIgnore[i]) {
                     int dec = locsyms[i].getVal();
-                    if (dec != 0 && (lastSymState / dec) % 2 == 1) {
-                        lastSymState -= locsyms[i].getVal();
+                    if (dec != 0 && (sym / dec) % 2 == 1) {
+                        sym -= locsyms[i].getVal();
                     }
                 }
             }
-            Comms.writePossibleSyms(rc, lastSymState);
+            Comms.writePossibleSyms(rc, sym);
             state = LAUNCHER_STATE.PATROL;
         }
     }
