@@ -15,7 +15,7 @@ public class Launcher extends Robot {
     static MapLocation meet = null;
 
     enum LAUNCHER_STATE {
-        GOTO_LOCATION, PATROL, DEFEND, ON_TARGET
+        GOTO_LOCATION, PATROL, DEFEND, ON_TARGET, RETURNING
     };
 
     enum SYMMETRY_CHECK {
@@ -41,7 +41,7 @@ public class Launcher extends Robot {
         if(turnCount == 1) {
             originHq = getClosestHQ(rc);
         }
-
+        pruneSymmetries(rc);
         generateTargets(rc);
         // setMeetLocation(rc, turnCount);
         MapLocation curLoc = rc.getLocation();
@@ -97,7 +97,7 @@ public class Launcher extends Robot {
             case DEFEND:        runLauncherDefend(rc); break;
             case PATROL:        runLauncherPatrol(rc); break;
             case ON_TARGET:     runLauncherOnTarget(rc); break;
-            // case RETURNING:     runLauncherReturning(rc); break;
+            case RETURNING:     runLauncherReturning(rc); break;
         }
     }
 
@@ -136,15 +136,20 @@ public class Launcher extends Robot {
 
     private static void runLauncherPatrol(RobotController rc) throws GameActionException {
 //        rc.setIndicatorString(""+onTarget);
-        MapLocation curLoc = rc.getLocation();
         MapLocation curTarget = targets[targetInd];
-        moveToOutsideRadius(rc, curTarget, 4);
+        moveToRadius(rc, curTarget, 4);
+        MapLocation curLoc = rc.getLocation();
+
         if(rc.canSenseLocation(curTarget)) {
             if(canSeeHq(rc)) {
                 state = LAUNCHER_STATE.ON_TARGET;
                 runLauncherState(rc);
             } else {
+                locIgnore[targetInd] = true;
                 nextTarget();
+                if (curLoc.distanceSquaredTo(originHq) * 3 < curLoc.distanceSquaredTo(targets[targetInd])) {
+                    state = LAUNCHER_STATE.RETURNING;
+                }
             }
         } else if(curLoc.isWithinDistanceSquared(curTarget, 16)) {
             roundsNearTarget++;
@@ -152,20 +157,40 @@ public class Launcher extends Robot {
         if(!isReachable(rc, curTarget) || roundsNearTarget > 20) {
             nextTarget();
         }
+        rc.setIndicatorDot(targets[targetInd], 0, 255, 0);
     }
     private static void runLauncherOnTarget(RobotController rc) throws GameActionException {
         MapLocation curTarget = targets[targetInd];
-        if(curTarget.distanceSquaredTo(rc.getLocation()) == 25) return;
         moveToOutsideRadius(rc, curTarget, 16);
         
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots(4, rc.getTeam());
         int numLaunchers = 0;
 
         for (RobotInfo rob : nearbyRobots) {
-            if (rob.getType() == RobotType.LAUNCHER && rc.getID() < rob.getID()) numLaunchers++;
+            if (rob.getType() == RobotType.LAUNCHER && rc.getID() > rob.getID()) numLaunchers++;
         }
-        if (numLaunchers > 5) {
+        if (numLaunchers > 4) {
             nextTarget();
+            state = LAUNCHER_STATE.PATROL;
+        }
+    }
+
+    private static void runLauncherReturning(RobotController rc) throws GameActionException {
+        moveToRadius(rc, originHq, 9);
+    }
+
+    private static void pruneSymmetries(RobotController rc) throws GameActionException {
+        if (rc.canWriteSharedArray(Constants.IDX_POSSIBLE_SYMS, lastSymState) && locsyms.length > 0 && lastSymState > 0) {
+            for (int i = 0; i < locsyms.length; i++) {
+                if (locIgnore[i]) {
+                    int dec = locsyms[i].getVal();
+                    if (dec != 0 && (lastSymState / dec) % 2 == 1) {
+                        lastSymState -= locsyms[i].getVal();
+                    }
+                }
+            }
+            Comms.writePossibleSyms(rc, lastSymState);
+            state = LAUNCHER_STATE.PATROL;
         }
     }
 
@@ -239,10 +264,11 @@ public class Launcher extends Robot {
 
     private static void generateTargets(RobotController rc) throws GameActionException {
         int syms = Comms.getPossibleSyms(rc);
-        rc.setIndicatorString("SYMS: " + syms);
-        // if (syms == lastSymState) { return; }
+        rc.setIndicatorString("SYMS: " + syms + " SET: " + lastSymState);
+        if (syms == lastSymState) { return; }
         
         // % 2 for horz, /2 %2 for vert, /4 for rotational
+        targetInd = 0;
         MapLocation [] Hqs = Comms.getHQs(rc);
 
         lastSymState = syms;
