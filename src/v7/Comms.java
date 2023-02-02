@@ -224,10 +224,10 @@ public class Comms {
     }
     public static void writeIslandLocs(RobotController rc, HashMap<Integer, Integer> locs) throws GameActionException{
         //System.out.println("Writing locs");
-      /*  for (int i : locs.keySet()) {
+        for (int i : locs.keySet()) {
             writeIslandLoc(rc, locs.get(i), i);
-        }*/
-        int next_index = islandsStartIdx;
+        }
+        /*int next_index = islandsStartIdx;
         for (int i : locs.keySet()) {
             for (int j = next_index; j < islandsStartIdx + Constants.MAX_ISLANDS_STORED; j++) {
                 int val = rc.readSharedArray(2 * j - islandsStartIdx);
@@ -243,7 +243,7 @@ public class Comms {
                     break;
                 }
             }
-        }
+        }*/
     }
 
     // *****************************************************************************************************************
