@@ -22,6 +22,7 @@ public class BugNav {
     private static int turnsTracingObstacle = 0;
     private static boolean changedTrace = false;
     private static boolean changeWallTrace = false;
+    private static boolean lastWasCurrent = false;
 
     public static boolean tracingObstacle() {
         return obstacle;
@@ -35,6 +36,7 @@ public class BugNav {
         obstacle = false;
         changedTrace = false;
         changeWallTrace = false;
+        lastWasCurrent = false;
     }
 
     private static void softReset() {
@@ -77,18 +79,21 @@ public class BugNav {
         return rc.onTheMap(loc);
     }
 
-    private static boolean isPassable(RobotController rc, Direction dir) throws GameActionException {
+    private static boolean hasCurrent(RobotController rc, Direction dir) throws GameActionException {
+        MapLocation loc = rc.getLocation().add(dir);
+        if(!rc.onTheMap(loc)) return false;
+        return rc.senseMapInfo(loc).getCurrentDirection() != Direction.CENTER;
+    }
+
+
+    private static boolean isPassable(RobotController rc, Direction dir, int strictness) throws GameActionException {
         MapLocation loc = rc.getLocation().add(dir);
         if(!rc.onTheMap(loc)) return false;
         MapInfo locInfo = rc.senseMapInfo(loc);
         Direction currentDir = locInfo.getCurrentDirection();
-        boolean goodCurrent = currentDir == Direction.CENTER
-                || currentDir == dir
-                || currentDir == dir.rotateLeft()
-                || currentDir == dir.rotateRight();
-//        RobotInfo hasRobot = rc.senseRobotAtLocation(loc);
-//        boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
-//        return locInfo.isPassable() && goodCurrent && goodRobot;
+        boolean goodCurrent = currentDir == Direction.CENTER;
+        if(strictness <= 1) goodCurrent = goodCurrent || currentDir == dir;
+        if(strictness == 0) goodCurrent = goodCurrent || currentDir == dir.rotateLeft() || currentDir == dir.rotateRight();
         return rc.canMove(dir) && goodCurrent;
     }
 
@@ -97,6 +102,7 @@ public class BugNav {
         traceLeft = !traceLeft;
         traceDir = traceDir.opposite();
     }
+
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
 //        rc.setIndicatorString(""+changedTrace + " colLoc:" + collisionLoc + " curDest:" + curDest);
@@ -154,7 +160,7 @@ public class BugNav {
 
         Direction nextDir = null;
         if(!obstacle) {
-            if (isPassable(rc, dir)) {
+            if (isPassable(rc, dir, 0)) {
 //                rc.setIndicatorString("move: " + dir);
 //                assumedLoc = curLoc.add(dir);
                 return dir;
@@ -206,8 +212,12 @@ public class BugNav {
 
         Direction prevDir = Direction.CENTER;
         for(int i = 0; i < 8; ++i) {
-            if(isPassable(rc, nextDir)) {
+            int strictness = 0;
+            if(lastWasCurrent) ++strictness;
+            if(nextDir != traceDir) ++ strictness;
+            if(isPassable(rc, nextDir, strictness)) {
                 traceDir = nextDir;
+                if(hasCurrent(rc, prevDir)) lastWasCurrent = true;
                 if(!changeWallTrace && !onTheMap(rc, prevDir)) {
                     changeWallTrace = true;
 //                    rc.setIndicatorString(traceDir + " " + traceLeft + " " + prevDir);
