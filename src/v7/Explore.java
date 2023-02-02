@@ -87,10 +87,11 @@ public class Explore {
             Direction dir = Random.nextDir();
             for (int i = 0; i < 8; ++i) {
                 if (rc.canMove(dir)) {
-                    if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
+                    if (numMoves == 0) {
                         prevLocs[prevlocIdx] = rc.getLocation();
                         prevlocIdx++;
                     }
+                    prevDir = dir;
                     rc.move(dir);
                     // for empty carriers
                     exploreNewArea(rc);
@@ -101,20 +102,19 @@ public class Explore {
 
         } else {
             Direction dir = prevDir;
-            if (numMoves % Constants.MOVES_TO_TRACK_LOCATION == 0 || !rc.canMove(dir)) {
+            if (numMoves == 0 || !rc.canMove(dir)) {
                 dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
+                prevLocs[prevlocIdx] = rc.getLocation();
+                prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
             }
             if(dir != Direction.CENTER) {
-                if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
-                    numMoves = 0;
-                    prevLocs[prevlocIdx] = rc.getLocation();
-                    prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
-                }
                 prevDir = dir;
                 rc.move(dir);
                 exploreNewArea(rc);
             }
+
         }
+        numMoves = (numMoves + 1) % Constants.MOVES_TO_TRACK_LOCATION;
     }
 
 

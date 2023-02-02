@@ -495,7 +495,7 @@ public class Carrier extends Robot {
             int[] island_ids = rc.senseNearbyIslands();
 
             for (int islandId : island_ids) {
-                if (!Comms.knowsIsland(rc, islandId)) {
+                if (rc.senseAnchor(islandId) == null) {
                     MapLocation[] locs = rc.senseNearbyIslandLocations(islandId);
                     island_locs.put(islandId, Comms.encodeIslandLoc(rc, locs[0]));
                     current_objective = locs[0];
@@ -527,7 +527,7 @@ public class Carrier extends Robot {
         rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") SKY: " + Comms.getNumIslands(rc));
         int island_id = rc.senseIsland(rc.getLocation());
         if (island_id != -1) {
-            rc.setIndicatorString("ANCHORING AT (" + rc.getLocation().x + "," + rc.getLocation().y + ") (Within Range) ");
+            //rc.setIndicatorString("ANCHORING AT (" + rc.getLocation().x + "," + rc.getLocation().y + ") (Within Range) ");
             if (rc.senseAnchor(island_id) != null) {
                 int num_islands = Comms.getNumIslands(rc);
                 if (num_islands > prev_num_islands || island_id == island_objective_id) {
@@ -537,7 +537,6 @@ public class Carrier extends Robot {
                     int random_index = (island_id == island_objective_id) ? random_island_distance_blacklist(rc, island_id) : random_island_distance(rc);
                     current_objective = Comms.getIsland(rc, random_index);
                     island_objective_id = Comms.getIslandID(rc, random_index);
-                    attempts += (island_id == island_objective_id) ? 1 : 0;
 //                    rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Already Anchored)");
                 }
             } else if (rc.canPlaceAnchor()) {
