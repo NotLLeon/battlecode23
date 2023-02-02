@@ -197,14 +197,14 @@ public class BugNav {
 //                rc.setIndicatorString("broke");
                 return Direction.CENTER;
             }
-
-            if(turnsTracingObstacle > 10 && !changedTrace && curLoc.distanceSquaredTo(dest) >= dis + 64) {
-                changeTraceDir();
-                softReset();
-                Direction recDir = getDir(rc, dest);
-                collisionLoc = curLoc;
-                return recDir;
-            }
+            // TODO: keep track of locs of last n currents that youve passed through, treat them as walls
+//            if(turnsTracingObstacle > 10 && !changedTrace && curLoc.distanceSquaredTo(dest) >= dis + 64) {
+//                changeTraceDir();
+//                softReset();
+//                Direction recDir = getDir(rc, dest);
+//                collisionLoc = curLoc;
+//                return recDir;
+//            }
 
             if(traceLeft) nextDir = traceDir.rotateRight().rotateRight();
             else nextDir = traceDir.rotateLeft().rotateLeft();
