@@ -21,6 +21,7 @@ public class BugNav {
     private static boolean traceLeft = true;
     private static int turnsTracingObstacle = 0;
     private static boolean changedTrace = false;
+    private static boolean changeWallTrace = false;
 
     public static boolean tracingObstacle() {
         return obstacle;
@@ -33,6 +34,7 @@ public class BugNav {
         collisionLoc = null;
         obstacle = false;
         changedTrace = false;
+        changeWallTrace = false;
     }
 
     private static void softReset() {
@@ -61,13 +63,18 @@ public class BugNav {
     }
 
     private static void computeSlope(MapLocation p1, MapLocation p2) {
-        if(p1.x == p2.x) {
+        if (p1.x == p2.x) {
             infSlope = true;
             slope = 0;
             return;
         }
-        slope = ((double)(p1.y-p2.y))/(p1.x-p2.x);
+        slope = ((double) (p1.y - p2.y)) / (p1.x - p2.x);
         infSlope = false;
+    }
+
+    private static boolean onTheMap(RobotController rc, Direction dir) {
+        MapLocation loc = rc.getLocation().add(dir);
+        return rc.onTheMap(loc);
     }
 
     private static boolean isPassable(RobotController rc, Direction dir) throws GameActionException {
@@ -83,6 +90,12 @@ public class BugNav {
 //        boolean goodRobot = hasRobot == null || hasRobot.getType() == RobotType.HEADQUARTERS;
 //        return locInfo.isPassable() && goodCurrent && goodRobot;
         return rc.canMove(dir) && goodCurrent;
+    }
+
+    private static void changeTraceDir() {
+        changedTrace = true;
+        traceLeft = !traceLeft;
+        traceDir = traceDir.opposite();
     }
 
     public static Direction getDir(RobotController rc, MapLocation dest) throws GameActionException {
@@ -180,9 +193,7 @@ public class BugNav {
             }
 
             if(turnsTracingObstacle > 10 && !changedTrace && curLoc.distanceSquaredTo(dest) >= dis + 64) {
-                changedTrace = true;
-                traceLeft = !traceLeft;
-                traceDir = traceDir.opposite();
+                changeTraceDir();
                 softReset();
                 Direction recDir = getDir(rc, dest);
                 collisionLoc = curLoc;
@@ -192,18 +203,25 @@ public class BugNav {
             if(traceLeft) nextDir = traceDir.rotateRight().rotateRight();
             else nextDir = traceDir.rotateLeft().rotateLeft();
         }
+
+        Direction prevDir = Direction.CENTER;
         for(int i = 0; i < 8; ++i) {
             if(isPassable(rc, nextDir)) {
                 traceDir = nextDir;
+                if(!changeWallTrace && !onTheMap(rc, prevDir)) {
+                    changeWallTrace = true;
+//                    rc.setIndicatorString(traceDir + " " + traceLeft + " " + prevDir);
+                    changeTraceDir();
+                    return getDir(rc, dest);
+                }
 //                assumedLoc = curLoc.add(traceDir);
                 return traceDir;
             } else {
+                prevDir = nextDir;
                 if(traceLeft) nextDir = nextDir.rotateLeft();
                 else nextDir = nextDir.rotateRight();
             }
         }
-//        rc.setIndicatorString("cent");
-
         return Direction.CENTER;
     }
 }
