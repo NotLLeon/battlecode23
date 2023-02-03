@@ -50,7 +50,7 @@ public class Carrier extends Robot {
             int[] weights = new int[indices.length];
             int offset = 0;
             for (int i = 0; i < indices.length; i++) {
-                if (ignore_ids.contains(Comms.getIslandID(rc, i+offset))) {
+                while (ignore_ids.contains(Comms.getIslandID(rc, i+offset)) && i+offset <= num_islands - ignore_ids.size()) {
                     offset++;
                 }
                 indices[i] = i + offset;
