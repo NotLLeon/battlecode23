@@ -43,16 +43,14 @@ public class Carrier extends Robot {
 
     private static int random_island_distance_blacklist(RobotController rc, HashSet<Integer> ignore_ids) throws GameActionException {
         int num_islands = Comms.getNumIslands(rc);
-        if (num_islands == ignore_ids.size()) {
-            return random_island_distance(rc);
-        } else if (num_islands < ignore_ids.size()) {
+        if (num_islands <= ignore_ids.size()) {
             return -1;
         } else {
-            int[] indices = new int[Comms.getNumIslands(rc) - ignore_ids.size()];
+            int[] indices = new int[num_islands- ignore_ids.size()];
             int[] weights = new int[indices.length];
             int offset = 0;
             for (int i = 0; i < indices.length; i++) {
-                if (ignore_ids.contains(Comms.getIslandID(rc, i))) {
+                if (ignore_ids.contains(Comms.getIslandID(rc, i+offset))) {
                     offset++;
                 }
                 indices[i] = i + offset;
@@ -60,6 +58,9 @@ public class Carrier extends Robot {
                 weights[i] = weightFactor / ((dist == 0) ? weightFactor : (int) Math.pow(Math.sqrt(dist), stratificationFactor));
             }
             int random = Random.nextIndexWeighted(weights);
+            if (rc.getID() == 11994) {
+                System.out.println("Giving Island: " + Comms.getIsland(rc, indices[random]) + " bad? " + ignore_ids.contains(indices[random]));
+            }
             return indices[random];
         }
     }
@@ -580,15 +581,27 @@ public class Carrier extends Robot {
                 if (islandId == island_objective_id) {
                     prev_num_islands = num_islands;
                     int random_index = random_island_distance_blacklist(rc, captured_islands);
+
+                    if (random_index == -1) {
+                        state = CARRIER_STATE.ISLAND_SEARCH;
+                        runCarrierState(rc);
+                    }
+
                     current_objective = Comms.getIsland(rc, random_index);
                     island_objective_id = Comms.getIslandID(rc, random_index);
                 }
-            } else if (captured_islands.contains(islandId)){
+            } else if (captured_islands.contains(islandId)) {
                 captured_islands.remove(islandId);
             }
         }
 
         int island_id = rc.senseIsland(rc.getLocation());
+        if (rc.getID() == 11994) {
+            System.out.println("Captured: " + captured_islands.size() + " known: " + num_islands);
+        }
+      /*  if (rc.getID() == 12278 && captured_islands.size() == num_islands) {
+            System.out.println("32huihfdfweiohjweijoh3rojir32");
+        }*/
         if (island_id != -1) {
 //            rc.setIndicatorString("ANCHORING AT (" + rc.getLocation().x + "," + rc.getLocation().y + ") (Within Range) ");
             if (rc.senseAnchor(island_id) != null) {
@@ -597,10 +610,16 @@ public class Carrier extends Robot {
                     //int random = Random.nextInt(Comms.getNumIslands(rc));
                     //rc.setIndicatorString("fh389uieojkvfkdje " + island_id + " " + island_objective_id);
                     int random_index = (island_id == island_objective_id) ? random_island_distance_blacklist(rc, captured_islands) : random_island_distance(rc);
-                    current_objective = Comms.getIsland(rc, random_index);
-                    island_objective_id = Comms.getIslandID(rc, random_index);
+                    if (random_index == -1 && island_id == island_objective_id) {
+                        state = CARRIER_STATE.ISLAND_SEARCH;
+                        runCarrierState(rc);
+                    } else {
+                        current_objective = Comms.getIsland(rc, random_index);
+                        island_objective_id = Comms.getIslandID(rc, random_index);
 //                    rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Already Anchored)");
-                    attempts += (island_id == island_objective_id) ? 1 : 0;
+                        attempts += (island_id == island_objective_id) ? 1 : 0;
+                    }
+                    //rc.setIndicatorString(");
                 }
             } else if (rc.canPlaceAnchor()) {
                 rc.placeAnchor();
