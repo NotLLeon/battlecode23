@@ -88,13 +88,14 @@ public class Headquarters extends Robot {
         if (currRobotCount > 20*hqCount
                 && turnCount >= 300
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
-                && turnCount % 100 == 0) {
+                && turnCount % 100 == 0
+                && Comms.getNumIslands(rc) > 0) {
             tryingtoBuildAnchor = true;
             saveAd += Anchor.STANDARD.adamantiumCost;
             saveMn += Anchor.STANDARD.manaCost;
         }
 
-        if (enemyLaunchers > 0) {
+        if (enemyLaunchers > 0 && turnCount > 20) {
             tryingToBuildAmp = false;
             shouldSave = true;
         }

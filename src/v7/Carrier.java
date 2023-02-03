@@ -590,7 +590,7 @@ public class Carrier extends Robot {
 
         int island_id = rc.senseIsland(rc.getLocation());
         if (island_id != -1) {
-            //rc.setIndicatorString("ANCHORING AT (" + rc.getLocation().x + "," + rc.getLocation().y + ") (Within Range) ");
+//            rc.setIndicatorString("ANCHORING AT (" + rc.getLocation().x + "," + rc.getLocation().y + ") (Within Range) ");
             if (rc.senseAnchor(island_id) != null) {
                 if (num_islands > prev_num_islands || island_id == island_objective_id) {
                     prev_num_islands = num_islands;
@@ -600,6 +600,7 @@ public class Carrier extends Robot {
                     current_objective = Comms.getIsland(rc, random_index);
                     island_objective_id = Comms.getIslandID(rc, random_index);
 //                    rc.setIndicatorString("ANCHORING AT (" + current_objective.x + "," + current_objective.y + ") (Already Anchored)");
+                    attempts += (island_id == island_objective_id) ? 1 : 0;
                 }
             } else if (rc.canPlaceAnchor()) {
                 rc.placeAnchor();
