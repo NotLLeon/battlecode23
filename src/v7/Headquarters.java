@@ -26,8 +26,9 @@ public class Headquarters extends Robot {
 //            Symmetry[] possibleSyms = getSymmetry(rc);
 //        }
 
-        int anchorRate = 100;
-        if (turnCount < 750) anchorRate = 200;
+        int anchorRate = 200;
+        if (turnCount <= 750) anchorRate = 350;
+        if(turnCount >= 1500) anchorRate = 100;
 
         //Putting the check here just in case.
         if (Comms.getNumHQs(rc) > 0) {
