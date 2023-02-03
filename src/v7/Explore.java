@@ -2,8 +2,6 @@ package v7;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-
 public class Explore {
     static int prevlocIdx = 0;
     static int numMoves = 0;
@@ -69,7 +67,6 @@ public class Explore {
         }
         int totalWeight = 0;
         for (int w : weights) totalWeight += w;
-        rc.setIndicatorString(Arrays.toString(weights));
         if(totalWeight == 0) return Direction.CENTER;
         return Random.nextDirWeighted(weights, totalWeight);
     }
