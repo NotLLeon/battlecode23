@@ -75,10 +75,10 @@ public class Headquarters extends Robot {
         Direction dirToCent = curLoc.directionTo(new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2));
 
         if (currRobotCount > 20*hqCount
-                && turnCount >= 750
+                && turnCount >= 1000
 //                && spawnInd < spawnSpaces
 //                && rc.canBuildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd])
-                && turnCount % 100 == 0) {
+                && turnCount % 150 == 0) {
 //            rc.buildRobot(RobotType.AMPLIFIER, spawnLocs[spawnInd++]);
             tryingToBuildAmp = true;
             saveAd += RobotType.AMPLIFIER.buildCostAdamantium;
@@ -86,9 +86,9 @@ public class Headquarters extends Robot {
         }
 
         if (currRobotCount > 20*hqCount
-                && turnCount >= 750
+                && turnCount >= 300
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
-                && turnCount % 150 == 0) {
+                && turnCount % 100 == 0) {
             tryingtoBuildAnchor = true;
             saveAd += Anchor.STANDARD.adamantiumCost;
             saveMn += Anchor.STANDARD.manaCost;

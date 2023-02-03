@@ -47,9 +47,9 @@ public class Explore {
             }
         }
 
-        RobotInfo [] robots = rc.senseNearbyRobots();
+        RobotInfo [] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for(RobotInfo robot : robots) {
-            if((robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) && robot.getTeam() != rc.getTeam()) {
+            if(robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) {
                 int dirIndex = Random.getDirectionOrderNum(curLoc.directionTo(robot.getLocation()));
                 weights[dirIndex] = 0;
                 weights[(dirIndex+1)%8] = 0;
@@ -57,6 +57,7 @@ public class Explore {
                 weights[(dirIndex+3)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
                 weights[(dirIndex+4)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
                 weights[(dirIndex+5)%8] *= Constants.HIGH_WEIGHT_DIRECTION;
+                break;
             }
         }
 
@@ -87,11 +88,10 @@ public class Explore {
             Direction dir = Random.nextDir();
             for (int i = 0; i < 8; ++i) {
                 if (rc.canMove(dir)) {
-                    if (numMoves == 0) {
+                    if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
                         prevLocs[prevlocIdx] = rc.getLocation();
                         prevlocIdx++;
                     }
-                    prevDir = dir;
                     rc.move(dir);
                     // for empty carriers
                     exploreNewArea(rc);
@@ -102,19 +102,27 @@ public class Explore {
 
         } else {
             Direction dir = prevDir;
-            if (numMoves == 0 || !rc.canMove(dir)) {
+            RobotInfo [] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+            boolean nearbyEnemy = false;
+            for(RobotInfo robot : robots) {
+                if(robot.getType() == RobotType.LAUNCHER || robot.getType() == RobotType.HEADQUARTERS) {
+                    nearbyEnemy = true;
+                }
+            }
+            if (numMoves % Constants.MOVES_TO_TRACK_LOCATION == 0 || !rc.canMove(dir) || nearbyEnemy) {
                 dir = exploreAwayFromLoc(rc, getAvgLocation(prevLocs));
-                prevLocs[prevlocIdx] = rc.getLocation();
-                prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
             }
             if(dir != Direction.CENTER) {
+                if ((++numMoves) % Constants.MOVES_TO_TRACK_LOCATION == 0) {
+                    numMoves = 0;
+                    prevLocs[prevlocIdx] = rc.getLocation();
+                    prevlocIdx = (prevlocIdx + 1) % Constants.NUM_TRACKED_LOCATIONS;
+                }
                 prevDir = dir;
                 rc.move(dir);
                 exploreNewArea(rc);
             }
-
         }
-        numMoves = (numMoves + 1) % Constants.MOVES_TO_TRACK_LOCATION;
     }
 
 
