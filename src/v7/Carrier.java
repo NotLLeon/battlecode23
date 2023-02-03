@@ -50,9 +50,18 @@ public class Carrier extends Robot {
             int[] weights = new int[indices.length];
             int offset = 0;
             for (int i = 0; i < indices.length; i++) {
-                while (ignore_ids.contains(Comms.getIslandID(rc, i+offset)) && i+offset <= num_islands - ignore_ids.size()) {
+                while (ignore_ids.contains(Comms.getIslandID(rc, i+offset)) && i+offset < num_islands) {
                     offset++;
                 }
+
+                if (i+offset >= num_islands) {
+                    if (num_islands >= 1) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                }
+
                 indices[i] = i + offset;
                 int dist = Comms.getIsland(rc, indices[i]).distanceSquaredTo(rc.getLocation());
                 weights[i] = weightFactor / ((dist == 0) ? weightFactor : (int) Math.pow(Math.sqrt(dist), stratificationFactor));
@@ -596,9 +605,6 @@ public class Carrier extends Robot {
         }
 
         int island_id = rc.senseIsland(rc.getLocation());
-        if (rc.getID() == 11994) {
-            System.out.println("Captured: " + captured_islands.size() + " known: " + num_islands);
-        }
       /*  if (rc.getID() == 12278 && captured_islands.size() == num_islands) {
             System.out.println("32huihfdfweiohjweijoh3rojir32");
         }*/
