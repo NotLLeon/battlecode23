@@ -210,13 +210,15 @@ public class BugNav {
             else nextDir = traceDir.rotateLeft().rotateLeft();
         }
 
-        Direction prevDir = Direction.CENTER;
+        Direction prevDir;
         for(int i = 0; i < 8; ++i) {
             int strictness = 0;
             if(lastWasCurrent) ++strictness;
             if(nextDir != traceDir) ++ strictness;
             if(isPassable(rc, nextDir, strictness)) {
                 traceDir = nextDir;
+                if(traceLeft) prevDir = traceDir.rotateRight().rotateRight();
+                else prevDir = traceDir.rotateLeft().rotateLeft();
                 if(hasCurrent(rc, prevDir)) lastWasCurrent = true;
                 if(!changeWallTrace && !onTheMap(rc, prevDir)) {
                     changeWallTrace = true;
@@ -227,7 +229,6 @@ public class BugNav {
 //                assumedLoc = curLoc.add(traceDir);
                 return traceDir;
             } else {
-                prevDir = nextDir;
                 if(traceLeft) nextDir = nextDir.rotateLeft();
                 else nextDir = nextDir.rotateRight();
             }
