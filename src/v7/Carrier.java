@@ -67,9 +67,6 @@ public class Carrier extends Robot {
                 weights[i] = weightFactor / ((dist == 0) ? weightFactor : (int) Math.pow(Math.sqrt(dist), stratificationFactor));
             }
             int random = Random.nextIndexWeighted(weights);
-            if (rc.getID() == 11994) {
-                System.out.println("Giving Island: " + Comms.getIsland(rc, indices[random]) + " bad? " + ignore_ids.contains(indices[random]));
-            }
             return indices[random];
         }
     }
