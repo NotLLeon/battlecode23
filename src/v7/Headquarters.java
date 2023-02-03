@@ -26,6 +26,9 @@ public class Headquarters extends Robot {
 //            Symmetry[] possibleSyms = getSymmetry(rc);
 //        }
 
+        int anchorRate = 100;
+        if (turnCount < 750) anchorRate = 200;
+
         //Putting the check here just in case.
         if (Comms.getNumHQs(rc) > 0) {
             if (Comms.getHQs(rc)[0].equals(curLoc)) {
@@ -88,7 +91,7 @@ public class Headquarters extends Robot {
         if (currRobotCount > 20*hqCount
                 && turnCount >= 300
                 && rc.getNumAnchors(Anchor.STANDARD) < 1
-                && turnCount % 100 == 0
+                && turnCount % anchorRate == 0
                 && Comms.getNumIslands(rc) > 0) {
             tryingtoBuildAnchor = true;
             saveAd += Anchor.STANDARD.adamantiumCost;
