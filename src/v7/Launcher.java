@@ -40,55 +40,10 @@ public class Launcher extends Robot {
 
     static void runLauncher(RobotController rc, int turnCount) throws GameActionException {
         // rc.setIndicatorString("" + state);
-        if(turnCount == 1) {
-            originHq = getClosestHQ(rc);
-        }
+        if(turnCount == 1) originHq = getClosestHQ(rc);
         pruneSymmetries(rc);
         generateTargets(rc);
-        // setMeetLocation(rc, turnCount);
-        MapLocation curLoc = rc.getLocation();
-        MapLocation shot = tryToShoot(rc);
-        if(shot != null && state != LAUNCHER_STATE.ON_TARGET) {
-            Direction moveBack = curLoc.directionTo(shot).opposite();
-            if(rc.canMove(moveBack)) rc.move(moveBack);
-            else if(rc.canMove(moveBack.rotateLeft())) rc.move(moveBack.rotateLeft());
-            else if(rc.canMove(moveBack.rotateRight())) rc.move(moveBack.rotateRight());
-            state = LAUNCHER_STATE.PATROL;
-        }
-
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(4, rc.getTeam());
-
-        int numLaunchers = 0;
-
-        for (RobotInfo rob : nearbyRobots) {
-            if (rob.getType() == RobotType.LAUNCHER) numLaunchers++;
-        }
-
-        // if(state != LAUNCHER_STATE.ON_TARGET) {
-        //     MapLocation[] distress = Comms.getDistressLocations(rc);
-        //     if (distress.length > 0 && state != LAUNCHER_STATE.DEFEND) {
-        //         if(rc.getRoundNum() > 200) {
-        //             state = LAUNCHER_STATE.DEFEND;
-        //             defendPoint = distress[Random.nextInt(distress.length)];
-        //         } else {
-        //             for(MapLocation disLoc : distress) {
-        //                 if(disLoc.equals(originHq)) {
-        //                     state = LAUNCHER_STATE.DEFEND;
-        //                     defendPoint = disLoc;
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     else if (distress.length == 0 && state == LAUNCHER_STATE.DEFEND) {
-        //         // state = LAUNCHER_STATE.GOTO_LOCATION;
-        //         state = LAUNCHER_STATE.PATROL;
-        //     }
-        //     // else if (state == LAUNCHER_STATE.PATROL && numLaunchers < 2) {
-        //     //     state = LAUNCHER_STATE.GOTO_LOCATION;
-        //     // }
-        // }
-
+        tryToShoot(rc);
         runLauncherState(rc);
         tryToShoot(rc);
         takePotshot(rc);
@@ -236,15 +191,15 @@ public class Launcher extends Robot {
         return false;
     }
 
-    private static MapLocation tryToShoot(RobotController rc) throws GameActionException {
-        if(!rc.isActionReady()) return null;
+    private static void tryToShoot(RobotController rc) throws GameActionException {
+        if(!rc.isActionReady()) return;
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
         int lowestHealth = 1000;
         int smallestDistance = 100;
         RobotInfo target = null;
-
+        int numEnemies = enemies.length;
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.HEADQUARTERS) continue;
             int enemyHealth = enemy.getHealth();
@@ -265,9 +220,24 @@ public class Launcher extends Robot {
         }
         if (target != null && rc.canAttack(target.getLocation())) {
             rc.attack(target.getLocation());
-            return target.getLocation();
+            if(!rc.isMovementReady()) return;
+            RobotType tarType = target.getType();
+            boolean shouldMoveTowards = tarType != RobotType.LAUNCHER && numEnemies < 3;
+            boolean shouldMoveAway = tarType == RobotType.LAUNCHER;
+//                if(state != LAUNCHER_STATE.ON_TARGET) {
+            MapLocation selfLoc = rc.getLocation();
+            MapLocation shotLoc = target.getLocation();
+            Direction moveDir = null;
+            if(shouldMoveAway) moveDir = selfLoc.directionTo(shotLoc).opposite();
+            if(shouldMoveTowards) moveDir = selfLoc.directionTo(shotLoc);
+            if(moveDir == null) return;
+
+            if(rc.canMove(moveDir)) rc.move(moveDir);
+            else if(rc.canMove(moveDir.rotateLeft())) rc.move(moveDir.rotateLeft());
+            else if(rc.canMove(moveDir.rotateRight())) rc.move(moveDir.rotateRight());
+            state = LAUNCHER_STATE.PATROL;
+//                }
         }
-        return null;
     }
 
     private static void nextTarget() {
